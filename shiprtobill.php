@@ -169,8 +169,55 @@ else
 echo '<input class="butAction" text-align="right" type="submit" name="afficheListe" />';
 echo '</form>';
 
-if(isset($_POST['afficheListe'])) {
-	$fact = new Facture($db);
+if(isset($_REQUEST['afficheListe'])) {
+	
+	$TExpedition = $_REQUEST['TExpedition'];
+	
+	foreach($TExpedition as $client) {
+		foreach($client as $expeditionCle => $expeditionValeur) {
+			
+			$sql = 'SELECT f.rowid as facnum';
+			$sql .= ' FROM '.MAIN_DB_PREFIX.'facture as f'; 
+			$sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'element_element as ee on f.rowid = ee.fk_target';
+			$sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'expedition as e on e.rowid = ee.fk_source';
+			$sql .= ' WHERE ee.sourcetype = "shipping"';
+			$sql .= ' AND ee.targettype = "facture"';
+			$sql .= ' AND e.rowid = '.$expeditionCle;
+			
+			$resql = $db->query($sql);
+			$objp = $db->fetch_object($resql);
+			/*echo "exp num : ".$expeditionCle."<br />";
+			var_dump($objp->facnum);
+			/*exit;*/
+			
+			if($objp->facnum) {
+				$fact = new Facture($db);
+				$fact->fetch($objp->facnum);
+				
+				foreach($fact->lines as $line) {
+					// Requête pour récupérer les produits de l'expédition pour par la suite les comparer aux produits de la facture pré-existante
+					$sql = 'SELECT cd.fk_product as num_prod';
+					$sql .= ' FROM '.MAIN_DB_PREFIX.'commandedet as cd';
+					$sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'commande as c on c.rowid = cd.fk_commande';
+					$sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'element_element as ee on c.rowid = ee.fk_source';
+					$sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'expedition as e on e.rowid = ee.fk_target';
+					$sql .= ' WHERE ee.sourcetype = "commande"';
+					$sql .= ' AND ee.targettype = "shipping"';
+					$sql .= ' AND e.rowid = '.$expeditionCle;
+					
+					$resql = $db->query($sql);
+					$objp = $db->fetch_object($resql);
+					if($line->fk_product == $objp->num_prod) {
+						//function updateline($rowid, $desc, $pu, $qty, $remise_percent, $date_start, $date_end, $txtva, $txlocaltax1=0, $txlocaltax2=0, $price_base_type='HT', $info_bits=0, $type=0, $fk_parent_line=0, $skip_update_total=0, $fk_fournprice=null, $pa_ht=0, $label='', $special_code=0, $array_option=0)
+						$fact->updateline($line->rowid, $line->$desc, $pu, $line->qty + $objp->qty, $line->remise_percent, $line->date_start, $line->date_end, $line->txtva);
+					}
+				}
+			} else {
+				
+			}
+			
+		}
+	}
 }
 
 $db->close();
