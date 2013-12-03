@@ -246,7 +246,18 @@ class modShipr2bill extends DolibarrModules
         //$this->rights[$r][5] = 'level2';
         //$r++;
         // Main menu entries
-        $this->menus = array(); // List of menus to add
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=products,fk_leftmenu=sendings',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+									'type'=>'left',			                // This is a Left menu entry
+									'titre'=>'Expéditions facturables',
+									'mainmenu'=>'sendings',
+									'leftmenu'=>'sendings',
+									'url'=>'/shipr2bill/shiprtobill.php',
+									'langs'=>'shipr2bill@shipr2bill',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+									//'position'=>100,
+									'enabled'=>'$conf->shipr2bill->enabled',  // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+									'perms'=>'1',			                // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+									'target'=>'',
+									'user'=>2);	 // List of menus to add
         $r = 0;
 
         // Add here entries to declare new menus
