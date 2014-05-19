@@ -23,13 +23,13 @@
  *      \brief      Page to list all shipments
  */
 
-require '/var/www/dolibarr/htdocs/main.inc.php';
-require_once DOL_DOCUMENT_ROOT.'/expedition/class/expedition.class.php';
-require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
+if(is_file('../../main.inc.php')) require '../../main.inc.php';
+else require '../main.inc.php';
+
+dol_include_once('/expedition/class/expedition.class.php');
+dol_include_once('/compta/facture/class/facture.class.php');
 
 global $user;
-
-echo '<LINK rel="stylesheet" type="text/css" href="style.css">';
 
 $langs->load("sendings");
 $langs->load('companies');
