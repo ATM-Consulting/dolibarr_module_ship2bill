@@ -105,20 +105,24 @@ if(isset($_REQUEST['subCreateBill'])){
 					dol_include_once('/subtotal/class/actions_subtotal.class.php');
 					$langs->load("subtotal@subtotal");
 					$sub = new ActionsSubtotal();
-					$sub->addSubTotalLine($facture, $title, 1);
+					if(method_exists($sub, 'addSubTotalLine')) $sub->addSubTotalLine($facture, $title, 1);
+					else $facture->addline($title, 0,1,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
 				} else {
 					$facture->addline($title, 0, 1);
 				}
 	
 				//Pour chaque produit de l'expédition, ajout d'une ligne de facture
-				foreach($exp->lines as $exp_line){
-					if($conf->global->SHIPMENT_GETS_ALL_ORDER_PRODUCTS && $exp_line->qty == 0) continue;
-					$facture->addline($exp_line->description, $exp_line->subprice, $exp_line->qty, $exp_line->tva_tx,0,0,$exp_line->fk_product);
+				foreach($exp->lines as $l){
+					if($conf->global->SHIPMENT_GETS_ALL_ORDER_PRODUCTS && $l->qty == 0) continue;
+					$orderline = new OrderLine($db);
+					$orderline->fetch($l->fk_origin_line);
+					$facture->addline($l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,$facture::TYPE_STANDARD,-1,0,'',0,0,$orderline->fk_fournprice,$orderline->pa_ht);
 				}
 				
 				// Affichage d'un sous-total par expédition
 				if($conf->subtotal->enabled) {
-					$sub->addSubTotalLine($facture, $langs->trans('SubTotal'), 99);
+					if(method_exists($sub, 'addSubTotalLine')) $sub->addSubTotalLine($facture, $langs->trans('SubTotal'), 99);
+					else $facture->addline($langs->trans('SubTotal'), 0,99,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
 				}
 			}
 		}
