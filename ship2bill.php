@@ -59,11 +59,18 @@ if(isset($_REQUEST['subCreateBill'])){
 		$nbFacture = 0;
 		foreach($TExpedition as $id_client => $Tid_exp){
 			
+			// Utilisation du module sous-total si activé
+			if($conf->subtotal->enabled) {
+				dol_include_once('/subtotal/class/actions_subtotal.class.php');
+				$langs->load("subtotal@subtotal");
+				$sub = new ActionsSubtotal();
+			}
+			
 			$facture = new Facture($db);
 			$facture->socid = $id_client;
 			$facture->fetch_thirdparty();
 			
-			//Données obligatoires
+			// Données obligatoires
 			$facture->date = dol_now();
 			$facture->type = 0;
 			$facture->cond_reglement_id = (!empty($facture->thirdparty->cond_reglement_id) ? $facture->thirdparty->cond_reglement_id : 1);
@@ -101,14 +108,13 @@ if(isset($_REQUEST['subCreateBill'])){
 				}
 				
 				// Affichage des références expéditions en tant que titre
-				if($conf->subtotal->enabled) {
-					dol_include_once('/subtotal/class/actions_subtotal.class.php');
-					$langs->load("subtotal@subtotal");
-					$sub = new ActionsSubtotal();
-					if(method_exists($sub, 'addSubTotalLine')) $sub->addSubTotalLine($facture, $title, 1);
-					else $facture->addline($title, 0,1,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
-				} else {
-					$facture->addline($title, 0, 1);
+				if($conf->global->SHIP2BILL_ADD_SHIPMENT_AS_TITLES) {
+					if($conf->subtotal->enabled) {
+						if(method_exists($sub, 'addSubTotalLine')) $sub->addSubTotalLine($facture, $title, 1);
+						else $facture->addline($title, 0,1,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
+					} else {
+						$facture->addline($title, 0, 1);
+					}
 				}
 	
 				//Pour chaque produit de l'expédition, ajout d'une ligne de facture
@@ -120,13 +126,17 @@ if(isset($_REQUEST['subCreateBill'])){
 				}
 				
 				// Affichage d'un sous-total par expédition
-				if($conf->subtotal->enabled) {
-					if(method_exists($sub, 'addSubTotalLine')) $sub->addSubTotalLine($facture, $langs->trans('SubTotal'), 99);
-					else $facture->addline($langs->trans('SubTotal'), 0,99,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
+				if($conf->global->SHIP2BILL_ADD_SHIPMENT_SUBTOTAL) {
+					if($conf->subtotal->enabled) {
+						if(method_exists($sub, 'addSubTotalLine')) $sub->addSubTotalLine($facture, $langs->trans('SubTotal'), 99);
+						else $facture->addline($langs->trans('SubTotal'), 0,99,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
+					}
 				}
 				
 				// Clôture de l'expédition
-				$exp->set_billed();
+				if($conf->global->SHIP2BILL_CLOSE_SHIPMENT) {
+					$exp->set_billed();
+				}
 			}
 		}
 	
