@@ -1,0 +1,8 @@
+Module104140Name = Expéditions facturables
+Module104140Desc = Module permettant de regrouper plusieurs expéditions en une seule facture
+
+Ship2BillMenu=Expéditions facturables
+ShipmentToBill=Expéditions à facturer
+CreateInvoiceButton=Générer les factures
+NoShipmentSelected=Aucune expédition sélectionnée
+InvoiceCreated=%s factures créées

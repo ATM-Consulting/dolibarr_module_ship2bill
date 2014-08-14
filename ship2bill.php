@@ -23,13 +23,10 @@
  *      \brief      Page to list all shipments
  */
 
-if(is_file('../../main.inc.php')) require '../../main.inc.php';
-else require '../main.inc.php';
-
+require 'config.php';
 dol_include_once('/expedition/class/expedition.class.php');
+dol_include_once('/commande/class/commande.class.php');
 dol_include_once('/compta/facture/class/facture.class.php');
-
-global $user;
 
 $langs->load("sendings");
 $langs->load('companies');
@@ -52,65 +49,63 @@ if (! $sortfield) $sortfield="e.ref";
 if (! $sortorder) $sortorder="DESC";
 $limit = $conf->liste_limit;
 
-
-if(isset($_REQUEST['afficheListe'])){
-	global $user;
+if(isset($_REQUEST['subCreateBill'])){
 	$TExpedition = $_REQUEST['TExpedition'];
 	
-	//Pour chaque ligne du tableau (Chaque client)
-	foreach($TExpedition as $id_client => $Tid_exp){
-		
-		$facture = new Facture($db);
-		
-		//Données obligatoires
-		$facture->date = dol_now();
-		$facture->socid = $id_client;
-		$facture->type = 1;
-		$facture->cond_reglement_id = 1;
-		$facture->mode_reglement_id = 1;
-		$facture->modelpdf = 'crabe';
-		$facture->statut = 1;
-		$facture->create($user);
-		
-		//Pour chaque id expédition
-		foreach($Tid_exp as $id_exp => $val){
+	if(empty($TExpedition)) {
+		setEventMessage($langs->trans('NoShipmentSelected'), 'warnings');
+	} else {
+		//Pour chaque ligne du tableau (Chaque client)
+		$nbFacture = 0;
+		foreach($TExpedition as $id_client => $Tid_exp){
 			
-			//Charger l'expédition
-			$exp = new Expedition($db);
-			$exp->fetch($id_exp);
-
-			$i = 0;
-
-			//Pour chaque produit de l'expédition
-			foreach($exp->lines as $exp_line){
+			$facture = new Facture($db);
+			$facture->socid = $id_client;
+			$facture->fetch_thirdparty();
+			
+			//Données obligatoires
+			$facture->date = dol_now();
+			$facture->type = 0;
+			$facture->cond_reglement_id = (!empty($facture->thirdparty->cond_reglement_id) ? $facture->thirdparty->cond_reglement_id : 1);
+			$facture->mode_reglement_id = $facture->thirdparty->mode_reglement_id;
+			$facture->modelpdf = 'crabe';
+			$facture->statut = 0;
+			$facture->create($user);
+			$nbFacture++;
+			
+			//Pour chaque id expédition
+			foreach($Tid_exp as $id_exp => $val) {
 				
-				// On fait un fetch lines car addline() ne met pas à jour tout seul le tableau lines
-				$facture->fetch_lines();
+				//Charger l'expédition
+				$exp = new Expedition($db);
+				$exp->fetch($id_exp);
+				$facture->add_object_linked('shipping', $exp->id);
+	
+				$i = 0;
 				
-				//Pour chaque ligne de la facture
-				if(count($facture->lines) > 0){
-					$update = false;
-					foreach($facture->lines as $line) {
-						if ($line->fk_product == $exp_line->fk_product) {
-							$facture->updateline($line->rowid, $line->desc, $line->total_ht, $line->qty + $exp_line->qty, $line->remise_percent, $line->date_start, $line->date_end, $line->tva_tx)."<br>";
-							$update = true;
-						}
-					}
-					if(!$update) {
-						$facture->addline($facture->id, $exp_line->description, $exp_line->total_ht, $exp_line->qty, $exp_line->tva_tx,0,0,$exp_line->fk_product)."<br>";
-					}
+				$title = $langs->trans('Shipment').' : '.$exp->ref;
+				
+				// Affichage des références expéditions en tant que titre
+				if($conf->subtotal->enabled) {
+					dol_include_once('/subtotal/class/actions_subtotal.class.php');
+					$sub = new ActionsSubtotal();
+					$sub->addSubTotalLine($facture, $title, 1);
+				} else {
+					$facture->addline($title, 0, 1);
 				}
-				else{
-					$facture->addline($facture->id, $exp_line->description, $exp_line->total_ht, $exp_line->qty, $exp_line->tva_tx,0,0,$exp_line->fk_product)."<br>";
+	
+				//Pour chaque produit de l'expédition
+				foreach($exp->lines as $exp_line){
+					if($conf->global->SHIPMENT_GETS_ALL_ORDER_PRODUCTS && $exp_line->qty == 0) continue;
+					$facture->addline($exp_line->description, $exp_line->subprice, $exp_line->qty, $exp_line->tva_tx,0,0,$exp_line->fk_product);
 				}
 			}
-			$sql = "INSERT into ".MAIN_DB_PREFIX."element_element (fk_source, sourcetype, fk_target, targettype)";
-			$sql.= " VALUES (".$id_exp.", 'shipping', ".$facture->id.", 'facture')";
-			$db->query($sql);
 		}
+	
+		setEventMessage($langs->trans('InvoiceCreated', $nbFacture));
+		header("Location: ".dol_buildpath('/compta/facture/list.php',2));
+		exit;
 	}
-
-	setEventMessage("Expéditions facturées avec succès");
 }
 
 
@@ -118,13 +113,11 @@ if(isset($_REQUEST['afficheListe'])){
  * View
  */
  
-echo '<form name="formAfficheListe" method="POST" action = shiprtobill.php?id='.$_REQUEST['id'].' />';
- 
 $companystatic=new Societe($db);
 $shipment=new Expedition($db);
 
 $helpurl='EN:Module_Shipments|FR:Module_Exp&eacute;ditions|ES:M&oacute;dulo_Expediciones';
-llxHeader('',$langs->trans('Expéditions à facturer'),$helpurl);
+llxHeader('',$langs->trans('ShipmentToBill'),$helpurl);
 
 $sql = "SELECT e.rowid as id_exp, e.ref, e.date_delivery, e.date_expedition, e.fk_statut";
 $sql.= ", s.nom as socname, s.rowid as socid";
@@ -141,8 +134,6 @@ if(!empty($_REQUEST['id'])) {
 	$sql.= " AND e.fk_soc = ".$_REQUEST['id'];
 }
 $sql.= " AND e.fk_statut = 1";
-//$sql.= " AND ee.sourcetype = 'shipping'";
-//$sql.= " AND ee.targettype = 'facture'";
 $sql.= " AND ee.fk_source IS NULL";
 
 if (!$user->rights->societe->client->voir && !$socid)	// Internal user with no permission to see all
@@ -163,6 +154,7 @@ $sql.= $db->order($sortfield,$sortorder);
 $sql.= $db->plimit($limit + 1,$offset);
 
 $resql=$db->query($sql);
+
 if ($resql)
 {
 	$num = $db->num_rows($resql);
@@ -171,8 +163,9 @@ if ($resql)
 
 	$param="&amp;socid=$socid";
 
-	print_barre_liste($langs->trans('Expéditions à facturer'), $page, "liste.php",$param,$sortfield,$sortorder,'',$num);
+	print_barre_liste($langs->trans('ShipmentToBill'), $page, "liste.php",$param,$sortfield,$sortorder,'',$num);
 
+	print '<form name="formAfficheListe" method="POST" action="ship2bill.php">';
 
 	$i = 0;
 	print '<table class="noborder" width="100%">';
@@ -182,10 +175,10 @@ if ($resql)
 	print_liste_field_titre($langs->trans("Company"),"liste.php","s.nom", "", $param,'align="left"',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("DateDeliveryPlanned"),"liste.php","e.date_delivery","",$param, 'align="center"',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("DateReceived"),"liste.php","e.date_expedition","",$param, 'align="center"',$sortfield,$sortorder);
-	print_liste_field_titre($langs->trans("Expéditions à facturer"),"shiprtobill.php","e.date_expedition","",$param, 'align="center"',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("Status"),"liste.php","e.fk_statut","",$param,'align="right"',$sortfield,$sortorder);
+	print_liste_field_titre($langs->trans("ShipmentToBill"),"shiptobill.php","","",$param, 'align="center"',$sortfield,$sortorder);
 	print "</tr>\n";
-	$var=True;
+	$var=true;
 	
 	while ($i < min($num,$limit))
 	{
@@ -198,6 +191,7 @@ if ($resql)
 		$shipment->ref=$objp->ref;
 		print $shipment->getNomUrl(1);
 		print "</td>\n";
+		
 		// Third party
 		print '<td>';
 		$companystatic->id=$objp->socid;
@@ -205,26 +199,27 @@ if ($resql)
 		$companystatic->nom=$objp->socname;
 		print $companystatic->getNomUrl(1);
 		print '</td>';
+		
 		// Date delivery  planed
 		print "<td align=\"center\">";
 		print dol_print_date($db->jdate($objp->date_delivery),"day");
-		/*$now = time();
-		if ( ($now - $db->jdate($objp->date_expedition)) > $conf->warnings->lim && $objp->statutid == 1 )
-		{
-		}*/
 		print "</td>\n";
+		
 		// Date real
 		print "<td align=\"center\">";
 		print dol_print_date($db->jdate($objp->date_expedition),"day");
 		print "</td>\n";
-		print "<td align=\"right\">";
+		
+		// Statut
+		print '<td align="right">'.$expedition->LibStatut($objp->fk_statut,5).'</td>';
+		
+		// Sélection expé à facturer
+		print '<td align="center">';
 		?>
-			<input type="checkbox" name="TExpedition[<?=$objp->socid?>][<?=$objp->id_exp?>]" />
-		<?
+			<input type="checkbox" name="TExpedition[<?php echo $objp->socid?>][<?php echo $objp->id_exp?>]" />
+		<?php
 		
 		print "</td>";
-
-		print '<td align="right">'.$expedition->LibStatut($objp->fk_statut,5).'</td>';
 		print "</tr>\n";
 
 		$i++;
@@ -238,8 +233,8 @@ else
 	dol_print_error($db);
 }
 
-echo '<br /><input class="butAction" type="submit" name="afficheListe" value="Générer factures" />';
-echo '</form>';
+print '<br /><input style="float:right" class="butAction" type="submit" name="subCreateBill" value="'.$langs->trans('CreateInvoiceButton').'" />';
+print '</form>';
 
 $db->close();
 

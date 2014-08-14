@@ -28,7 +28,7 @@ include_once DOL_DOCUMENT_ROOT . "/core/modules/DolibarrModules.class.php";
 /**
  * Description and activation class for module MyModule
  */
-class modShipr2bill extends DolibarrModules
+class modShip2bill extends DolibarrModules
 {
 
     /**
@@ -47,7 +47,7 @@ class modShipr2bill extends DolibarrModules
         // (See in Home -> System information -> Dolibarr for list of used modules id).
         $this->numero = 104140; // 104000 to 104999 for ATM CONSULTING
         // Key text used to identify module (for permissions, menus, etc...)
-        $this->rights_class = 'mymodule';
+        $this->rights_class = 'ship2bill';
 
         // Family can be 'crm','financial','hr','projects','products','ecm','technic','other'
         // It is used to group modules in module setup page
@@ -61,7 +61,7 @@ class modShipr2bill extends DolibarrModules
         // (where XXX is value of numeric property 'numero' of module)
         $this->description = "Module regroupement des expéditions à facturer";
         // Possible values for version are: 'development', 'experimental' or version
-        $this->version = '1.0';
+        $this->version = '1.1';
         // Key used in llx_const table to save module status enabled/disabled
         // (where MYMODULE is value of property name of module in uppercase)
         $this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
@@ -73,14 +73,14 @@ class modShipr2bill extends DolibarrModules
         // use this->picto='pictovalue'
         // If file is in module/img directory under name object_pictovalue.png
         // use this->picto='pictovalue@module'
-        $this->picto = 'shipr2bill@shipr2bill'; // mypicto@mymodule
+        $this->picto = 'ship2bill@ship2bill'; // mypicto@mymodule
         // Defined all module parts (triggers, login, substitutions, menus, css, etc...)
         // for default path (eg: /mymodule/core/xxxxx) (0=disable, 1=enable)
         // for specific path of parts (eg: /mymodule/core/modules/barcode)
         // for specific css file (eg: /mymodule/css/mymodule.css.php)
         $this->module_parts = array(
             // Set this to 1 if module has its own trigger directory
-            'triggers' => 1,
+            //'triggers' => 1,
             // Set this to 1 if module has its own login method directory
             //'login' => 0,
             // Set this to 1 if module has its own substitution function file
@@ -116,7 +116,7 @@ class modShipr2bill extends DolibarrModules
         $this->phpmin = array(5, 3);
         // Minimum version of Dolibarr required by module
         $this->need_dolibarr_version = array(3, 2);
-        $this->langfiles = array("shippr2bill@shipr2bill"); // langfiles@mymodule
+        $this->langfiles = array("ship2bill@ship2bill"); // langfiles@mymodule
         // Constants
         // List of particular constants to add when module is enabled
         // (key, 'chaine', value, desc, visible, 'current' or 'allentities', deleteonunactive)
@@ -145,9 +145,9 @@ class modShipr2bill extends DolibarrModules
         );
         
         // Dictionnaries
-        if (! isset($conf->shipr2bill->enabled)) {
-            $conf->shipr2bill=new stdClass();
-            $conf->shipr2bill->enabled = 0;
+        if (! isset($conf->ship2bill->enabled)) {
+            $conf->ship2bill=new stdClass();
+            $conf->ship2bill->enabled = 0;
         }
         $this->dictionnaries = array();
         
@@ -169,13 +169,13 @@ class modShipr2bill extends DolibarrModules
 
        $this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=products,fk_leftmenu=sendings',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 									'type'=>'left',			                // This is a Left menu entry
-									'titre'=>'Expéditions facturables',
+									'titre'=>'Ship2BillMenu',
 									'mainmenu'=>'sendings',
 									'leftmenu'=>'sendings',
-									'url'=>'/shipr2bill/shiprtobill.php',
-									'langs'=>'shipr2bill@shipr2bill',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+									'url'=>'/ship2bill/ship2bill.php',
+									'langs'=>'ship2bill@ship2bill',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 									//'position'=>100,
-									'enabled'=>'$conf->shipr2bill->enabled',  // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+									'enabled'=>'$conf->ship2bill->enabled',  // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
 									'perms'=>'1',			                // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 									'target'=>'',
 									'user'=>2);	 // List of menus to add
@@ -230,6 +230,6 @@ class modShipr2bill extends DolibarrModules
      */
     private function loadTables()
     {
-        return $this->_load_tables('/mymodule/sql/');
+        return $this->_load_tables('/ship2bill/sql/');
     }
 }

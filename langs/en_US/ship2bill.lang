@@ -1,0 +1,4 @@
+Module104140Name = Shipment to invoice
+Module104140Desc = Allow to create an invoice for several shipments
+
+Ship2BillMenu=Billable shipments
