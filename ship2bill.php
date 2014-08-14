@@ -76,28 +76,49 @@ if(isset($_REQUEST['subCreateBill'])){
 			//Pour chaque id expédition
 			foreach($Tid_exp as $id_exp => $val) {
 				
-				//Charger l'expédition
+				// Chargement de l'expédition
 				$exp = new Expedition($db);
 				$exp->fetch($id_exp);
-				$facture->add_object_linked('shipping', $exp->id);
-	
-				$i = 0;
 				
-				$title = $langs->trans('Shipment').' : '.$exp->ref;
+				// Lien avec la facture
+				$facture->add_object_linked('shipping', $exp->id);
+				
+				// Regroupement des lignes par expédition via titre
+				$title = $langs->trans('Shipment').' '.$exp->ref.' ('.dol_print_date($exp->date_delivery,'day').')';
+				
+				if($conf->livraison_bon->enabled) {
+					$exp->fetchObjectLinked('','','delivery');
+					
+					// Récupération des infos du BL pour le titre, sinon de l'expédition
+					if (! empty($exp->linkedObjectsIds['delivery'][0])) {
+						dol_include_once('/livraison/class/livraison.class.php');
+						$langs->load("deliveries");
+						
+						$liv = new Livraison($db);
+						$liv->fetch($exp->linkedObjectsIds['delivery'][0]);
+						$title = $langs->trans('Delivery').' '.$liv->ref.' ('.dol_print_date($liv->date_delivery,'day').')';
+					}
+				}
 				
 				// Affichage des références expéditions en tant que titre
 				if($conf->subtotal->enabled) {
 					dol_include_once('/subtotal/class/actions_subtotal.class.php');
+					$langs->load("subtotal@subtotal");
 					$sub = new ActionsSubtotal();
 					$sub->addSubTotalLine($facture, $title, 1);
 				} else {
 					$facture->addline($title, 0, 1);
 				}
 	
-				//Pour chaque produit de l'expédition
+				//Pour chaque produit de l'expédition, ajout d'une ligne de facture
 				foreach($exp->lines as $exp_line){
 					if($conf->global->SHIPMENT_GETS_ALL_ORDER_PRODUCTS && $exp_line->qty == 0) continue;
 					$facture->addline($exp_line->description, $exp_line->subprice, $exp_line->qty, $exp_line->tva_tx,0,0,$exp_line->fk_product);
+				}
+				
+				// Affichage d'un sous-total par expédition
+				if($conf->subtotal->enabled) {
+					$sub->addSubTotalLine($facture, $langs->trans('SubTotal'), 99);
 				}
 			}
 		}
@@ -119,7 +140,7 @@ $shipment=new Expedition($db);
 $helpurl='EN:Module_Shipments|FR:Module_Exp&eacute;ditions|ES:M&oacute;dulo_Expediciones';
 llxHeader('',$langs->trans('ShipmentToBill'),$helpurl);
 
-$sql = "SELECT e.rowid as id_exp, e.ref, e.date_delivery, e.date_expedition, e.fk_statut";
+$sql = "SELECT e.rowid, e.ref, e.date_delivery as date_expedition, l.date_delivery as date_livraison, e.fk_statut";
 $sql.= ", s.nom as socname, s.rowid as socid";
 $sql.= " FROM (".MAIN_DB_PREFIX."expedition as e";
 if (!$user->rights->societe->client->voir && !$socid)	// Internal user with no permission to see all
@@ -128,14 +149,12 @@ if (!$user->rights->societe->client->voir && !$socid)	// Internal user with no p
 }
 $sql.= ")";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as s ON s.rowid = e.fk_soc";
-$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee ON (e.rowid = ee.fk_source AND ee.sourcetype = 'shipping' AND ee.targettype = 'facture')";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee ON e.rowid = ee.fk_source AND ee.sourcetype = 'shipping'";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."livraison as l ON l.rowid = ee.fk_target AND ee.targettype = 'delivery'";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture as f ON f.rowid = ee.fk_target AND ee.targettype = 'facture'";
 $sql.= " WHERE e.entity = ".$conf->entity;
-if(!empty($_REQUEST['id'])) {
-	$sql.= " AND e.fk_soc = ".$_REQUEST['id'];
-}
 $sql.= " AND e.fk_statut = 1";
-$sql.= " AND ee.fk_source IS NULL";
-
+$sql.= " AND f.rowid IS NULL";
 if (!$user->rights->societe->client->voir && !$socid)	// Internal user with no permission to see all
 {
 	$sql.= " AND e.fk_soc = sc.fk_soc";
@@ -174,24 +193,26 @@ if ($resql)
 	print_liste_field_titre($langs->trans("Ref"),"liste.php","e.ref","",$param,'',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("Company"),"liste.php","s.nom", "", $param,'align="left"',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("DateDeliveryPlanned"),"liste.php","e.date_delivery","",$param, 'align="center"',$sortfield,$sortorder);
-	print_liste_field_titre($langs->trans("DateReceived"),"liste.php","e.date_expedition","",$param, 'align="center"',$sortfield,$sortorder);
+	if($conf->livraison_bon->enabled) {
+		print_liste_field_titre($langs->trans("DateReceived"),"liste.php","e.date_expedition","",$param, 'align="center"',$sortfield,$sortorder);
+	}
 	print_liste_field_titre($langs->trans("Status"),"liste.php","e.fk_statut","",$param,'align="right"',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("ShipmentToBill"),"shiptobill.php","","",$param, 'align="center"',$sortfield,$sortorder);
 	print "</tr>\n";
-	$var=true;
-	
+	$var=True;
+
 	while ($i < min($num,$limit))
 	{
 		$objp = $db->fetch_object($resql);
+		$checkbox = 'TExpedition['.$objp->socid.']['.$objp->rowid.']';
 
 		$var=!$var;
 		print "<tr ".$bc[$var].">";
 		print "<td>";
-		$shipment->id=$objp->id_exp;
+		$shipment->id=$objp->rowid;
 		$shipment->ref=$objp->ref;
 		print $shipment->getNomUrl(1);
 		print "</td>\n";
-		
 		// Third party
 		print '<td>';
 		$companystatic->id=$objp->socid;
@@ -199,27 +220,28 @@ if ($resql)
 		$companystatic->nom=$objp->socname;
 		print $companystatic->getNomUrl(1);
 		print '</td>';
-		
 		// Date delivery  planed
 		print "<td align=\"center\">";
-		print dol_print_date($db->jdate($objp->date_delivery),"day");
-		print "</td>\n";
-		
-		// Date real
-		print "<td align=\"center\">";
 		print dol_print_date($db->jdate($objp->date_expedition),"day");
+		/*$now = time();
+		if ( ($now - $db->jdate($objp->date_expedition)) > $conf->warnings->lim && $objp->statutid == 1 )
+		{
+		}*/
 		print "</td>\n";
-		
-		// Statut
+		if($conf->livraison_bon->enabled) {
+			// Date real
+			print "<td align=\"center\">";
+			print dol_print_date($db->jdate($objp->date_livraison),"day");
+			print "</td>\n";
+		}
+
 		print '<td align="right">'.$expedition->LibStatut($objp->fk_statut,5).'</td>';
 		
 		// Sélection expé à facturer
 		print '<td align="center">';
-		?>
-			<input type="checkbox" name="TExpedition[<?php echo $objp->socid?>][<?php echo $objp->id_exp?>]" />
-		<?php
+		print '<input type="checkbox" checked="checked" name="'.$checkbox.'" />';
+		print "</td>\n";
 		
-		print "</td>";
 		print "</tr>\n";
 
 		$i++;
