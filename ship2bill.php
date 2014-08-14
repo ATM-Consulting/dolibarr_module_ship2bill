@@ -124,6 +124,9 @@ if(isset($_REQUEST['subCreateBill'])){
 					if(method_exists($sub, 'addSubTotalLine')) $sub->addSubTotalLine($facture, $langs->trans('SubTotal'), 99);
 					else $facture->addline($langs->trans('SubTotal'), 0,99,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
 				}
+				
+				// Clôture de l'expédition
+				$exp->set_billed();
 			}
 		}
 	
