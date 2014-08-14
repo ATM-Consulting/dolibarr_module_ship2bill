@@ -5,4 +5,4 @@ Ship2BillMenu=Expéditions facturables
 ShipmentToBill=Expéditions à facturer
 CreateInvoiceButton=Générer les factures
 NoShipmentSelected=Aucune expédition sélectionnée
-InvoiceCreated=%s factures créées
+InvoiceCreated=%s facture(s) créée(s)
