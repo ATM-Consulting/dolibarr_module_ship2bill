@@ -122,7 +122,7 @@ if(isset($_REQUEST['subCreateBill'])){
 					if($conf->global->SHIPMENT_GETS_ALL_ORDER_PRODUCTS && $l->qty == 0) continue;
 					$orderline = new OrderLine($db);
 					$orderline->fetch($l->fk_origin_line);
-					$facture->addline($l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,$facture::TYPE_STANDARD,-1,0,'',0,0,$orderline->fk_fournprice,$orderline->pa_ht);
+					$facture->addline($l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'',0,0,$orderline->fk_fournprice,$orderline->pa_ht);
 				}
 				
 				// Affichage d'un sous-total par expédition
