@@ -29,12 +29,12 @@ dol_include_once('/commande/class/commande.class.php');
 dol_include_once('/compta/facture/class/facture.class.php');
 
 $langs->load("sendings");
+$langs->load("orders");
 $langs->load('companies');
 
 // Security check
-$expeditionid = GETPOST('id','int');
 if ($user->societe_id) $socid=$user->societe_id;
-$result = restrictedArea($user, 'expedition',$expeditionid,'');
+$result = restrictedArea($user, 'expedition');
 
 $sortfield = GETPOST('sortfield','alpha');
 $sortorder = GETPOST('sortorder','alpha');
@@ -55,17 +55,21 @@ if(isset($_REQUEST['subCreateBill'])){
 	if(empty($TExpedition)) {
 		setEventMessage($langs->trans('NoShipmentSelected'), 'warnings');
 	} else {
-		//Pour chaque ligne du tableau (Chaque client)
+		// Utilisation du module livraison
+		if($conf->livraison_bon->enabled) {
+			dol_include_once('/livraison/class/livraison.class.php');
+			$langs->load("deliveries");
+		}
+		// Utilisation du module sous-total si activé
+		if($conf->subtotal->enabled) {
+			dol_include_once('/subtotal/class/actions_subtotal.class.php');
+			$langs->load("subtotal@subtotal");
+			$sub = new ActionsSubtotal();
+		}
+		
 		$nbFacture = 0;
+		// Pour chaque id client
 		foreach($TExpedition as $id_client => $Tid_exp){
-			
-			// Utilisation du module sous-total si activé
-			if($conf->subtotal->enabled) {
-				dol_include_once('/subtotal/class/actions_subtotal.class.php');
-				$langs->load("subtotal@subtotal");
-				$sub = new ActionsSubtotal();
-			}
-			
 			$facture = new Facture($db);
 			$facture->socid = $id_client;
 			$facture->fetch_thirdparty();
@@ -82,7 +86,6 @@ if(isset($_REQUEST['subCreateBill'])){
 			
 			//Pour chaque id expédition
 			foreach($Tid_exp as $id_exp => $val) {
-				
 				// Chargement de l'expédition
 				$exp = new Expedition($db);
 				$exp->fetch($id_exp);
@@ -90,46 +93,61 @@ if(isset($_REQUEST['subCreateBill'])){
 				// Lien avec la facture
 				$facture->add_object_linked('shipping', $exp->id);
 				
-				// Regroupement des lignes par expédition via titre
-				$title = $langs->trans('Shipment').' '.$exp->ref.' ('.dol_print_date($exp->date_delivery,'day').')';
-				
-				if($conf->livraison_bon->enabled) {
-					$exp->fetchObjectLinked('','','delivery');
-					
-					// Récupération des infos du BL pour le titre, sinon de l'expédition
-					if (! empty($exp->linkedObjectsIds['delivery'][0])) {
-						dol_include_once('/livraison/class/livraison.class.php');
-						$langs->load("deliveries");
-						
-						$liv = new Livraison($db);
-						$liv->fetch($exp->linkedObjectsIds['delivery'][0]);
-						$title = $langs->trans('Delivery').' '.$liv->ref.' ('.dol_print_date($liv->date_delivery,'day').')';
-					}
-				}
-				
 				// Affichage des références expéditions en tant que titre
 				if($conf->global->SHIP2BILL_ADD_SHIPMENT_AS_TITLES) {
+					$title = '';
+					$exp->fetchObjectLinked('','commande');
+					
+					// Récupération des infos de la commande pour le titre
+					if (! empty($exp->linkedObjectsIds['commande'][0])) {
+						$ord = new Commande($db);
+						$ord->fetch($exp->linkedObjectsIds['commande'][0]);
+						$title.= $langs->trans('Order').' '.$ord->ref.' / '.$ord->ref_client.' ('.dol_print_date($ord->date_commande,'day').') - ';
+					}
+					
+					if($conf->livraison_bon->enabled) {
+						$exp->fetchObjectLinked('','','','delivery');
+						
+						// Récupération des infos du BL pour le titre, sinon de l'expédition
+						if (! empty($exp->linkedObjectsIds['delivery'][0])) {
+							$liv = new Livraison($db);
+							$liv->fetch($exp->linkedObjectsIds['delivery'][0]);
+							$title.= $langs->trans('Delivery').' '.$liv->ref.' ('.dol_print_date($liv->date_delivery,'day').')';
+						}
+					} else {
+						$title.= $langs->trans('Shipment').' '.$exp->ref.' ('.dol_print_date($exp->date_delivery,'day').')';
+					}
+				
+					// Ajout du titre
 					if($conf->subtotal->enabled) {
 						if(method_exists($sub, 'addSubTotalLine')) $sub->addSubTotalLine($facture, $title, 1);
-						else $facture->addline($title, 0,1,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
+						else {
+							if((float)DOL_VERSION <= 3.4) $facture->addline($facture->id, $title, 0,1,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
+							else $facture->addline($title, 0,1,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
+						}
 					} else {
-						$facture->addline($title, 0, 1);
+						if((float)DOL_VERSION <= 3.4) $facture->addline($facture->id, $title, 0, 1, 0);
+						else $facture->addline($title, 0, 1);
 					}
 				}
 	
-				//Pour chaque produit de l'expédition, ajout d'une ligne de facture
+				// Pour chaque produit de l'expédition, ajout d'une ligne de facture
 				foreach($exp->lines as $l){
 					if($conf->global->SHIPMENT_GETS_ALL_ORDER_PRODUCTS && $l->qty == 0) continue;
 					$orderline = new OrderLine($db);
 					$orderline->fetch($l->fk_origin_line);
-					$facture->addline($l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'',0,0,$orderline->fk_fournprice,$orderline->pa_ht);
+					if((float)DOL_VERSION <= 3.4) $facture->addline($facture->id, $l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'',0,0,$orderline->fk_fournprice,$orderline->pa_ht);
+					else $facture->addline($l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'',0,0,$orderline->fk_fournprice,$orderline->pa_ht);
 				}
 				
-				// Affichage d'un sous-total par expédition
+				// Ajout d'un sous-total par expédition
 				if($conf->global->SHIP2BILL_ADD_SHIPMENT_SUBTOTAL) {
 					if($conf->subtotal->enabled) {
 						if(method_exists($sub, 'addSubTotalLine')) $sub->addSubTotalLine($facture, $langs->trans('SubTotal'), 99);
-						else $facture->addline($langs->trans('SubTotal'), 0,99,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
+						else {
+							if((float)DOL_VERSION <= 3.4) $facture->addline($facture->id, $langs->trans('SubTotal'), 0,99,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
+							else $facture->addline($langs->trans('SubTotal'), 0,99,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
+						}
 					}
 				}
 				
@@ -137,6 +155,11 @@ if(isset($_REQUEST['subCreateBill'])){
 				if($conf->global->SHIP2BILL_CLOSE_SHIPMENT) {
 					$exp->set_billed();
 				}
+			}
+				
+			// Validation de la facture
+			if($conf->global->SHIP2BILL_VALID_INVOICE) {
+				$facture->validate($user);
 			}
 		}
 	
@@ -265,15 +288,17 @@ if ($resql)
 	}
 
 	print "</table>";
+	if($num > 0) {
+		print '<br /><input style="float:right" class="butAction" type="submit" name="subCreateBill" value="'.$langs->trans('CreateInvoiceButton').'" />';
+	}
+	print '</form>';
+	
 	$db->free($resql);
 }
 else
 {
 	dol_print_error($db);
 }
-
-print '<br /><input style="float:right" class="butAction" type="submit" name="subCreateBill" value="'.$langs->trans('CreateInvoiceButton').'" />';
-print '</form>';
 
 $db->close();
 

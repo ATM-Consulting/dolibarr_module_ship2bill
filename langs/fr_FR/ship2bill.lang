@@ -9,5 +9,6 @@ InvoiceCreated=%s facture(s) créée(s)
 AddShipmentAsTitles=Ajouter les informations des expéditions en tant que titre
 AddShipmentSubtotal=Ajouter un sous-total par expédition
 CloseShipment=Clôturer automatiquement les expéditions facturées
+ValidInvoice=Valider automatiquement les factures créées
 
 Ship2BillSetup=Configuration du module "Expéditions facturables"

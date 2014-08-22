@@ -97,7 +97,7 @@ if($conf->subtotal->enabled) {
 	print '</td></tr>';
 }
 
-// Add shipment as titles in invoice
+// Close automatically shipments
 $var=!$var;
 print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("CloseShipment").'</td>';
@@ -107,6 +107,20 @@ print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
 print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 print '<input type="hidden" name="action" value="set_SHIP2BILL_CLOSE_SHIPMENT">';
 print $form->selectyesno("SHIP2BILL_CLOSE_SHIPMENT",$conf->global->SHIP2BILL_CLOSE_SHIPMENT,1);
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
+// Validate automatically invoice
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("ValidInvoice").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="300">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_SHIP2BILL_VALID_INVOICE">';
+print $form->selectyesno("SHIP2BILL_VALID_INVOICE",$conf->global->SHIP2BILL_VALID_INVOICE,1);
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 print '</form>';
 print '</td></tr>';
