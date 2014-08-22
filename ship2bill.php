@@ -102,9 +102,10 @@ if(isset($_REQUEST['subCreateBill'])){
 					if (! empty($exp->linkedObjectsIds['commande'][0])) {
 						$ord = new Commande($db);
 						$ord->fetch($exp->linkedObjectsIds['commande'][0]);
-						$title.= $langs->trans('Order').' '.$ord->ref.' / '.$ord->ref_client.' ('.dol_print_date($ord->date_commande,'day').') - ';
+						$title.= $langs->trans('Order').' '.$ord->ref.' / '.$ord->ref_client.' ('.dol_print_date($ord->date_commande,'day').')';
 					}
 					
+					$title2 = $langs->trans('Shipment').' '.$exp->ref.' ('.dol_print_date($exp->date_delivery,'day').')';
 					if($conf->livraison_bon->enabled) {
 						$exp->fetchObjectLinked('','','','delivery');
 						
@@ -112,11 +113,11 @@ if(isset($_REQUEST['subCreateBill'])){
 						if (! empty($exp->linkedObjectsIds['delivery'][0])) {
 							$liv = new Livraison($db);
 							$liv->fetch($exp->linkedObjectsIds['delivery'][0]);
-							$title.= $langs->trans('Delivery').' '.$liv->ref.' ('.dol_print_date($liv->date_delivery,'day').')';
+							$title2 = $langs->trans('Delivery').' '.$liv->ref.' ('.dol_print_date($liv->date_delivery,'day').')';
 						}
-					} else {
-						$title.= $langs->trans('Shipment').' '.$exp->ref.' ('.dol_print_date($exp->date_delivery,'day').')';
 					}
+					
+					$title.= ' - '.$title2;
 				
 					// Ajout du titre
 					if($conf->subtotal->enabled) {
