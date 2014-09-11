@@ -168,51 +168,12 @@ class modShip2bill extends DolibarrModules
 		$this->rights = array();		// Permission array used by this module
 		$r=0;
 
-		// Add here list of permission defined by an id, a label, a boolean and two constant strings.
-		// Example:
-		// $this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
-		// $this->rights[$r][1] = 'Permision label';	// Permission label
-		// $this->rights[$r][3] = 1; 					// Permission by default for new user (0/1)
-		// $this->rights[$r][4] = 'level1';				// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
-		// $this->rights[$r][5] = 'level2';				// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
-		// $r++;
-
 
 		// Main menu entries
 		$this->menu = array();			// List of menus to add
 		$r=0;
 
-		// Add here entries to declare new menus
-		//
-		// Example to declare a new Top Menu entry and its Left menu entry:
-		// $this->menu[$r]=array(	'fk_menu'=>0,			                // Put 0 if this is a top menu
-		//							'type'=>'top',			                // This is a Top menu entry
-		//							'titre'=>'MyModule top menu',
-		//							'mainmenu'=>'mymodule',
-		//							'leftmenu'=>'mymodule',
-		//							'url'=>'/mymodule/pagetop.php',
-		//							'langs'=>'mylangfile@mymodule',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-		//							'position'=>100,
-		//							'enabled'=>'$conf->mymodule->enabled',	// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-		//							'perms'=>'1',			                // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
-		//							'target'=>'',
-		//							'user'=>2);				                // 0=Menu for internal users, 1=external users, 2=both
-		// $r++;
-		//
-		// Example to declare a Left Menu entry into an existing Top menu entry:
-		// $this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=xxx',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
-		//							'type'=>'left',			                // This is a Left menu entry
-		//							'titre'=>'MyModule left menu',
-		//							'mainmenu'=>'xxx',
-		//							'leftmenu'=>'mymodule',
-		//							'url'=>'/mymodule/pagelevel2.php',
-		//							'langs'=>'mylangfile@mymodule',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-		//							'position'=>100,
-		//							'enabled'=>'$conf->mymodule->enabled',  // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
-		//							'perms'=>'1',			                // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
-		//							'target'=>'',
-		//							'user'=>2);				                // 0=Menu for internal users, 1=external users, 2=both
-		// $r++;
+		
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=products,fk_leftmenu=sendings',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 								'type'=>'left',			                // This is a Left menu entry
 								'titre'=>'Ship2BillMenu',
