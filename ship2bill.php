@@ -160,7 +160,7 @@ if(isset($_REQUEST['subCreateBill'])){
 				
 			// Validation de la facture
 			if($conf->global->SHIP2BILL_VALID_INVOICE) {
-				$facture->validate($user);
+				$facture->validate($user, '', $conf->global->SHIP2BILL_WARHOUSE_TO_USE);
 			}
 		}
 	

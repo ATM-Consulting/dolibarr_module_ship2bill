@@ -10,5 +10,6 @@ AddShipmentAsTitles=Add shipment informations as titles
 AddShipmentSubtotal=Add sub-total for each shipment
 CloseShipment=Automatically close shipment after invoice creation
 ValidInvoice=Automatically validate created invoices
+WarehouseToUseAfterInvoiceValidation=Warehouse to use for stock management after invoice validation
 
 Ship2BillSetup=Shipment to invoice module setup
