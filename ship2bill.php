@@ -31,6 +31,7 @@ $langs->load("sendings");
 $langs->load("deliveries");
 $langs->load("orders");
 $langs->load('companies');
+$langs->load('ship2bill@ship2bill');
 
 // Security check
 if ($user->societe_id) $socid=$user->societe_id;
