@@ -25,16 +25,20 @@
 
 require 'config.php';
 dol_include_once('/expedition/class/expedition.class.php');
-dol_include_once('/commande/class/commande.class.php');
-dol_include_once('/compta/facture/class/facture.class.php');
+dol_include_once('/ship2bill/class/ship2bill.class.php');
 
 $langs->load("sendings");
+$langs->load("deliveries");
 $langs->load("orders");
 $langs->load('companies');
 
 // Security check
 if ($user->societe_id) $socid=$user->societe_id;
 $result = restrictedArea($user, 'expedition');
+
+$search_ref_exp = GETPOST("search_ref_exp");
+$search_ref_live =GETPOST('search_ref_liv');
+$search_societe = GETPOST("search_societe");
 
 $sortfield = GETPOST('sortfield','alpha');
 $sortorder = GETPOST('sortorder','alpha');
@@ -55,119 +59,21 @@ if(isset($_REQUEST['subCreateBill'])){
 	if(empty($TExpedition)) {
 		setEventMessage($langs->trans('NoShipmentSelected'), 'warnings');
 	} else {
-		// Utilisation du module livraison
-		if($conf->livraison_bon->enabled) {
-			dol_include_once('/livraison/class/livraison.class.php');
-			$langs->load("deliveries");
-		}
-		// Utilisation du module sous-total si activé
-		if($conf->subtotal->enabled) {
-			dol_include_once('/subtotal/class/actions_subtotal.class.php');
-			$langs->load("subtotal@subtotal");
-			$sub = new ActionsSubtotal();
-		}
-		
-		$nbFacture = 0;
-		// Pour chaque id client
-		foreach($TExpedition as $id_client => $Tid_exp){
-			$facture = new Facture($db);
-			$facture->socid = $id_client;
-			$facture->fetch_thirdparty();
-			
-			// Données obligatoires
-			$facture->date = dol_now();
-			$facture->type = 0;
-			$facture->cond_reglement_id = (!empty($facture->thirdparty->cond_reglement_id) ? $facture->thirdparty->cond_reglement_id : 1);
-			$facture->mode_reglement_id = $facture->thirdparty->mode_reglement_id;
-			$facture->modelpdf = 'crabe';
-			$facture->statut = 0;
-			$facture->create($user);
-			$nbFacture++;
-			
-			//Pour chaque id expédition
-			foreach($Tid_exp as $id_exp => $val) {
-				// Chargement de l'expédition
-				$exp = new Expedition($db);
-				$exp->fetch($id_exp);
-				
-				// Lien avec la facture
-				$facture->add_object_linked('shipping', $exp->id);
-				
-				// Affichage des références expéditions en tant que titre
-				if($conf->global->SHIP2BILL_ADD_SHIPMENT_AS_TITLES) {
-					$title = '';
-					$exp->fetchObjectLinked('','commande');
-					
-					// Récupération des infos de la commande pour le titre
-					if (! empty($exp->linkedObjectsIds['commande'][0])) {
-						$ord = new Commande($db);
-						$ord->fetch($exp->linkedObjectsIds['commande'][0]);
-						$title.= $langs->trans('Order').' '.$ord->ref.' / '.$ord->ref_client.' ('.dol_print_date($ord->date_commande,'day').')';
-					}
-					
-					$title2 = $langs->trans('Shipment').' '.$exp->ref.' ('.dol_print_date($exp->date_delivery,'day').')';
-					if($conf->livraison_bon->enabled) {
-						$exp->fetchObjectLinked('','','','delivery');
-						
-						// Récupération des infos du BL pour le titre, sinon de l'expédition
-						if (! empty($exp->linkedObjectsIds['delivery'][0])) {
-							$liv = new Livraison($db);
-							$liv->fetch($exp->linkedObjectsIds['delivery'][0]);
-							$title2 = $langs->trans('Delivery').' '.$liv->ref.' ('.dol_print_date($liv->date_delivery,'day').')';
-						}
-					}
-					
-					$title.= ' - '.$title2;
-				
-					// Ajout du titre
-					if($conf->subtotal->enabled) {
-						if(method_exists($sub, 'addSubTotalLine')) $sub->addSubTotalLine($facture, $title, 1);
-						else {
-							if((float)DOL_VERSION <= 3.4) $facture->addline($facture->id, $title, 0,1,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
-							else $facture->addline($title, 0,1,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
-						}
-					} else {
-						if((float)DOL_VERSION <= 3.4) $facture->addline($facture->id, $title, 0, 1, 0);
-						else $facture->addline($title, 0, 1);
-					}
-				}
-	
-				// Pour chaque produit de l'expédition, ajout d'une ligne de facture
-				foreach($exp->lines as $l){
-					if($conf->global->SHIPMENT_GETS_ALL_ORDER_PRODUCTS && $l->qty == 0) continue;
-					$orderline = new OrderLine($db);
-					$orderline->fetch($l->fk_origin_line);
-					if((float)DOL_VERSION <= 3.4) $facture->addline($facture->id, $l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'',0,0,$orderline->fk_fournprice,$orderline->pa_ht);
-					else $facture->addline($l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'',0,0,$orderline->fk_fournprice,$orderline->pa_ht);
-				}
-				
-				// Ajout d'un sous-total par expédition
-				if($conf->global->SHIP2BILL_ADD_SHIPMENT_SUBTOTAL) {
-					if($conf->subtotal->enabled) {
-						if(method_exists($sub, 'addSubTotalLine')) $sub->addSubTotalLine($facture, $langs->trans('SubTotal'), 99);
-						else {
-							if((float)DOL_VERSION <= 3.4) $facture->addline($facture->id, $langs->trans('SubTotal'), 0,99,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
-							else $facture->addline($langs->trans('SubTotal'), 0,99,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
-						}
-					}
-				}
-				
-				// Clôture de l'expédition
-				if($conf->global->SHIP2BILL_CLOSE_SHIPMENT) {
-					$exp->set_billed();
-				}
-			}
-				
-			// Validation de la facture
-			if($conf->global->SHIP2BILL_VALID_INVOICE) {
-				$facture->validate($user, '', $conf->global->SHIP2BILL_WARHOUSE_TO_USE);
-			}
-		}
+		$ship2bill = new Ship2Bill();
+		$nbFacture = $ship2bill->generate_factures($TExpedition);
 	
 		setEventMessage($langs->trans('InvoiceCreated', $nbFacture));
 		header("Location: ".dol_buildpath('/compta/facture/list.php',2));
 		exit;
 	}
+}
+
+// Do we click on purge search criteria ?
+if (GETPOST("button_removefilter_x"))
+{
+    $search_ref_exp='';
+    $search_ref_liv='';
+    $search_societe='';
 }
 
 
@@ -180,6 +86,18 @@ $shipment=new Expedition($db);
 
 $helpurl='EN:Module_Shipments|FR:Module_Exp&eacute;ditions|ES:M&oacute;dulo_Expediciones';
 llxHeader('',$langs->trans('ShipmentToBill'),$helpurl);
+?>
+<script type="text/javascript">
+$(document).ready(function() {
+	$("#checkall").click(function() {
+		$(".checkforgen").attr('checked', true);
+	});
+	$("#checknone").click(function() {
+		$(".checkforgen").attr('checked', false);
+	});
+});
+</script>
+<?php
 
 $sql = "SELECT e.rowid, e.ref, e.date_delivery as date_expedition, l.date_delivery as date_livraison, e.fk_statut";
 $sql.= ", s.nom as socname, s.rowid as socid";
@@ -205,10 +123,9 @@ if ($socid)
 {
 	$sql.= " AND e.fk_soc = ".$socid;
 }
-if (GETPOST('sf_ref','alpha'))
-{
-	$sql.= " AND e.ref like '%".$db->escape(GETPOST('sf_ref','alpha'))."%'";
-}
+if ($search_ref_exp) $sql .= " AND e.ref LIKE '%".$db->escape($search_ref_exp)."%'";
+if ($search_ref_liv) $sql .= " AND l.ref LIKE '%".$db->escape($search_ref_liv)."%'";
+if ($search_societe) $sql .= " AND s.nom LIKE '%".$db->escape($search_societe)."%'";
 
 $sql.= $db->order($sortfield,$sortorder);
 $sql.= $db->plimit($limit + 1,$offset);
@@ -224,7 +141,7 @@ if ($resql)
 	$param="&amp;socid=$socid";
 
 	print_barre_liste($langs->trans('ShipmentToBill'), $page, "liste.php",$param,$sortfield,$sortorder,'',$num);
-
+	
 	print '<form name="formAfficheListe" method="POST" action="ship2bill.php">';
 
 	$i = 0;
@@ -235,11 +152,39 @@ if ($resql)
 	print_liste_field_titre($langs->trans("Company"),"ship2bill.php","s.nom", "", $param,'align="left"',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("DateDeliveryPlanned"),"ship2bill.php","e.date_delivery","",$param, 'align="center"',$sortfield,$sortorder);
 	if($conf->livraison_bon->enabled) {
+		print_liste_field_titre($langs->trans("DeliveryOrder"),"ship2bill.php","e.date_expedition","",$param, '',$sortfield,$sortorder);
 		print_liste_field_titre($langs->trans("DateReceived"),"ship2bill.php","e.date_expedition","",$param, 'align="center"',$sortfield,$sortorder);
 	}
 	print_liste_field_titre($langs->trans("Status"),"ship2bill.php","e.fk_statut","",$param,'align="right"',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("ShipmentToBill"),"shiptobill.php","","",$param, 'align="center"',$sortfield,$sortorder);
 	print "</tr>\n";
+	
+	// Lignes des champs de filtre
+	print '<tr class="liste_titre">';
+	// Ref
+	print '<td class="liste_titre">';
+	print '<input class="flat" size="10" type="text" name="search_ref_exp" value="'.$search_ref_exp.'">';
+    print '</td>';
+	print '<td class="liste_titre" align="left">';
+	print '<input class="flat" type="text" size="10" name="search_societe" value="'.dol_escape_htmltag($search_societe).'">';
+	print '</td>';
+	print '<td class="liste_titre">&nbsp;</td>';
+	if($conf->livraison_bon->enabled) {
+		print '<td class="liste_titre">';
+		print '<input class="flat" size="10" type="text" name="search_ref_liv" value="'.$search_ref_liv.'"';
+		print '</td>';
+		print '<td class="liste_titre">&nbsp;</td>';
+	}
+	print '<td class="liste_titre" align="right">';
+	print '<input type="image" class="liste_titre" name="button_search" src="'.img_picto($langs->trans("Search"),'search.png','','',1).'" value="'.dol_escape_htmltag($langs->trans("Search")).'" title="'.dol_escape_htmltag($langs->trans("Search")).'">';
+	print '<input type="image" class="liste_titre" name="button_removefilter" src="'.img_picto($langs->trans("Search"),'searchclear.png','','',1).'" value="'.dol_escape_htmltag($langs->trans("RemoveFilter")).'" title="'.dol_escape_htmltag($langs->trans("RemoveFilter")).'">';
+	print '</td>';
+	print '<td class="liste_titre" align="center">';
+	print '<a href="#" id="checkall">'.$langs->trans("All").'</a> / <a href="#" id="checknone">'.$langs->trans("None").'</a>';
+	print '</td>';
+	
+	print "</tr>\n";
+	
 	$var=True;
 
 	while ($i < min($num,$limit))
@@ -270,6 +215,14 @@ if ($resql)
 		}*/
 		print "</td>\n";
 		if($conf->livraison_bon->enabled) {
+			$shipment->fetchObjectLinked($shipment->id,$shipment->element);
+			$receiving=(! empty($shipment->linkedObjects['delivery'][0])?$shipment->linkedObjects['delivery'][0]:'');
+			
+			// Ref
+			print '<td>';
+			print !empty($receiving) ? $receiving->getNomUrl($db) : '';
+			print '</td>';
+			
 			// Date real
 			print "<td align=\"center\">";
 			print dol_print_date($db->jdate($objp->date_livraison),"day");
@@ -280,7 +233,7 @@ if ($resql)
 		
 		// Sélection expé à facturer
 		print '<td align="center">';
-		print '<input type="checkbox" checked="checked" name="'.$checkbox.'" />';
+		print '<input type="checkbox" checked="checked" name="'.$checkbox.'" class="checkforgen" />';
 		print "</td>\n";
 		
 		print "</tr>\n";
