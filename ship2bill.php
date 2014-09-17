@@ -38,7 +38,7 @@ if ($user->societe_id) $socid=$user->societe_id;
 $result = restrictedArea($user, 'expedition');
 
 $search_ref_exp = GETPOST("search_ref_exp");
-$search_ref_live =GETPOST('search_ref_liv');
+$search_ref_liv = GETPOST('search_ref_liv');
 $search_societe = GETPOST("search_societe");
 
 $sortfield = GETPOST('sortfield','alpha');
@@ -124,9 +124,9 @@ if ($socid)
 {
 	$sql.= " AND e.fk_soc = ".$socid;
 }
-if ($search_ref_exp) $sql .= " AND e.ref LIKE '%".$db->escape($search_ref_exp)."%'";
-if ($search_ref_liv) $sql .= " AND l.ref LIKE '%".$db->escape($search_ref_liv)."%'";
-if ($search_societe) $sql .= " AND s.nom LIKE '%".$db->escape($search_societe)."%'";
+if ($search_ref_exp) $sql .= natural_search('e.ref', $search_ref_exp);
+if ($search_ref_liv) $sql .= natural_search('l.ref', $search_ref_liv);
+if ($search_societe) $sql .= natural_search('s.nom', $search_societe);
 
 $sql.= $db->order($sortfield,$sortorder);
 $sql.= $db->plimit($limit + 1,$offset);
@@ -140,6 +140,9 @@ if ($resql)
 	$expedition = new Expedition($db);
 
 	$param="&amp;socid=$socid";
+	if ($search_ref_exp) $param.= "&amp;search_ref_exp=".$search_ref_exp;
+	if ($search_ref_liv) $param.= "&amp;search_ref_liv=".$search_ref_liv;
+	if ($search_societe) $param.= "&amp;search_societe=".$search_societe;
 
 	print_barre_liste($langs->trans('ShipmentToBill'), $page, "liste.php",$param,$sortfield,$sortorder,'',$num);
 	
@@ -177,6 +180,9 @@ if ($resql)
 		print '<td class="liste_titre">&nbsp;</td>';
 	}
 	print '<td class="liste_titre" align="right">';
+	// Développé dans la 3.7
+	//print img_search();
+	//print img_searchclear();
 	print '<input type="image" class="liste_titre" name="button_search" src="'.img_picto($langs->trans("Search"),'search.png','','',1).'" value="'.dol_escape_htmltag($langs->trans("Search")).'" title="'.dol_escape_htmltag($langs->trans("Search")).'">';
 	print '<input type="image" class="liste_titre" name="button_removefilter" src="'.img_picto($langs->trans("Search"),'searchclear.png','','',1).'" value="'.dol_escape_htmltag($langs->trans("RemoveFilter")).'" title="'.dol_escape_htmltag($langs->trans("RemoveFilter")).'">';
 	print '</td>';
