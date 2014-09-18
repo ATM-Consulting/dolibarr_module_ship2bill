@@ -37,6 +37,8 @@ $langs->load('ship2bill@ship2bill');
 if ($user->societe_id) $socid=$user->societe_id;
 $result = restrictedArea($user, 'expedition');
 
+$hookmanager->initHooks(array('invoicecard'));
+
 $search_ref_exp = GETPOST("search_ref_exp");
 $search_ref_liv = GETPOST('search_ref_liv');
 $search_societe = GETPOST("search_societe");
@@ -165,7 +167,6 @@ if ($resql)
 	
 	// Lignes des champs de filtre
 	print '<tr class="liste_titre">';
-	// Ref
 	print '<td class="liste_titre">';
 	print '<input class="flat" size="10" type="text" name="search_ref_exp" value="'.$search_ref_exp.'">';
     print '</td>';

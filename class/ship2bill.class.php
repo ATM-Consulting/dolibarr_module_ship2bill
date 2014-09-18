@@ -154,7 +154,7 @@ class Ship2Bill {
 		global $conf, $langs, $db;
 		
 		// Il faut recharger les lignes qui viennent juste d'être créées
-		$f->fetch_lines();
+		$f->fetch($f->id);
 		
 		$outputlangs = $langs;
 		if ($conf->global->MAIN_MULTILANGS) {$newlang=$object->client->default_lang;}
