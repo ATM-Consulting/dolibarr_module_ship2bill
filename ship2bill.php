@@ -40,6 +40,7 @@ $result = restrictedArea($user, 'expedition');
 
 $hookmanager->initHooks(array('invoicecard'));
 
+$action = GETPOST('action','alpha');
 $search_ref_exp = GETPOST("search_ref_exp");
 $search_ref_liv = GETPOST('search_ref_liv');
 $search_societe = GETPOST("search_societe");
@@ -47,6 +48,7 @@ $search_societe = GETPOST("search_societe");
 $sortfield = GETPOST('sortfield','alpha');
 $sortorder = GETPOST('sortorder','alpha');
 $page = GETPOST('page','int');
+$diroutputpdf=$conf->ship2bill->multidir_output[$conf->entity];
 
 if ($page == -1) { $page = 0; }
 $offset = $conf->liste_limit * $page;
@@ -67,9 +69,23 @@ if(isset($_REQUEST['subCreateBill'])){
 		$nbFacture = $ship2bill->generate_factures($TExpedition);
 	
 		setEventMessage($langs->trans('InvoiceCreated', $nbFacture));
-		header("Location: ".dol_buildpath('/compta/facture/list.php',2));
-		exit;
+		//header("Location: ".dol_buildpath('/compta/facture/list.php',2));
+		//exit;
 	}
+}
+
+// Remove file
+if ($action == 'remove_file')
+{
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+
+	$langs->load("other");
+	$upload_dir = $diroutputpdf;
+	$file = $upload_dir . '/' . GETPOST('file');
+	$ret=dol_delete_file($file,0,0,0,'');
+	if ($ret) setEventMessage($langs->trans("FileWasRemoved", GETPOST('urlfile')));
+	else setEventMessage($langs->trans("ErrorFailToDeleteFile", GETPOST('urlfile')), 'errors');
+	$action='';
 }
 
 // Do we click on purge search criteria ?
@@ -255,13 +271,11 @@ if ($resql)
 		print '<br /><input style="float:right" class="butAction" type="submit" name="subCreateBill" value="'.$langs->trans('CreateInvoiceButton').'" />';
 	}
 	print '</form>';
-	
-	$filedir=$conf->ship2bill->multidir_output[$conf->entity];
 
 	print '<br><br>';
 	// We disable multilang because we concat already existing pdf.
 	$formfile = new FormFile($db);
-	$formfile->show_documents('ship2bill','',$filedir,$urlsource,false,true,'',1,1,0,48,1,$param,$langs->trans("GlobalGeneratedFiles"));
+	$formfile->show_documents('ship2bill','',$diroutputpdf,$urlsource,false,true,'',1,1,0,48,1,$param,$langs->trans("GlobalGeneratedFiles"));
 	
 	$db->free($resql);
 }
