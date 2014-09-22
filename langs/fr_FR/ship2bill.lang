@@ -10,7 +10,8 @@ AddShipmentAsTitles=Ajouter les informations des expéditions en tant que titre
 AddShipmentSubtotal=Ajouter un sous-total par expédition
 CloseShipment=Clôturer automatiquement les expéditions facturées
 ValidInvoice=Valider automatiquement les factures créées
-GenerateInvoicePDF=Générer automatiquement les PDF des factures créées (le temps de traitement peut être plus long)
+GenerateInvoicePDF=Modèle à utiliser pour générer automatiquement le document facture (le temps de traitement peut être plus long)
+GenerateGlobalPDF=Générer un fichier PDF global contenant tous les PDF des factures créées
 WarehouseToUseAfterInvoiceValidation=Entrepôt à utiliser pour la gestion de stock après validation de la facture
 
 Ship2BillSetup=Configuration du module "Expéditions facturables"

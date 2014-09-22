@@ -10,7 +10,8 @@ AddShipmentAsTitles=Add shipment informations as titles
 AddShipmentSubtotal=Add sub-total for each shipment
 CloseShipment=Automatically close shipment after invoice creation
 ValidInvoice=Automatically validate created invoices
-GenerateInvoicePDF=Automatically generate PDF document for created invoices (may take a little more time)
+GenerateInvoicePDF=Model to use to automatically generate the invoices document (may take a little more time)
+GenerateGlobalPDF=Generate a global PDF file containing all created invoices PDF
 WarehouseToUseAfterInvoiceValidation=Warehouse to use for stock management after invoice validation
 
 Ship2BillSetup=Shipment to invoice module setup
