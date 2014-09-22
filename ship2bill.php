@@ -272,10 +272,12 @@ if ($resql)
 	}
 	print '</form>';
 
-	print '<br><br>';
-	// We disable multilang because we concat already existing pdf.
-	$formfile = new FormFile($db);
-	$formfile->show_documents('ship2bill','',$diroutputpdf,$urlsource,false,true,'',1,1,0,48,1,$param,$langs->trans("GlobalGeneratedFiles"));
+	if($conf->global->SHIP2BILL_GENERATE_GLOBAL_PDF) {
+		print '<br><br>';
+		// We disable multilang because we concat already existing pdf.
+		$formfile = new FormFile($db);
+		$formfile->show_documents('ship2bill','',$diroutputpdf,$urlsource,false,true,'',1,1,0,48,1,$param,$langs->trans("GlobalGeneratedFiles"));
+	}
 	
 	$db->free($resql);
 }

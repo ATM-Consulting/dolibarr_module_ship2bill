@@ -142,7 +142,7 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">'
 print '</form>';
 print '</td></tr>';
 
-if(!empty($conf->global->SHIP2BILL_GENERATE_INVOICE_PDF) && strpos($conf->global->SHIP2BILL_GENERATE_INVOICE_PDF, 'generic_invoice_odt') === false) {
+if(!empty($conf->global->SHIP2BILL_GENERATE_INVOICE_PDF) && $conf->global->SHIP2BILL_GENERATE_INVOICE_PDF != -1 && strpos($conf->global->SHIP2BILL_GENERATE_INVOICE_PDF, 'generic_invoice_odt') === false) {
 	// Generate global PDF containing all PDF
 	$var=!$var;
 	print '<tr '.$bc[$var].'>';
