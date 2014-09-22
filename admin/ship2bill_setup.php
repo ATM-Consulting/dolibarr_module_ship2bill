@@ -134,10 +134,29 @@ print '<td align="right" width="300">';
 print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
 print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 print '<input type="hidden" name="action" value="set_SHIP2BILL_GENERATE_INVOICE_PDF">';
-print $form->selectyesno("SHIP2BILL_GENERATE_INVOICE_PDF",$conf->global->SHIP2BILL_GENERATE_INVOICE_PDF,1);
+//print $form->selectyesno("SHIP2BILL_GENERATE_INVOICE_PDF",$conf->global->SHIP2BILL_GENERATE_INVOICE_PDF,1);
+dol_include_once('/core/modules/facture/modules_facture.php');
+$liste = ModelePDFFactures::liste_modeles($db);
+print $form->selectarray('SHIP2BILL_GENERATE_INVOICE_PDF', $liste, $conf->global->SHIP2BILL_GENERATE_INVOICE_PDF, 1);
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 print '</form>';
 print '</td></tr>';
+
+if(!empty($conf->global->SHIP2BILL_GENERATE_INVOICE_PDF) && strpos($conf->global->SHIP2BILL_GENERATE_INVOICE_PDF, 'generic_invoice_odt') === false) {
+	// Generate global PDF containing all PDF
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
+	print '<td>'.$langs->trans("GenerateGlobalPDF").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="right" width="300">';
+	print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+	print '<input type="hidden" name="action" value="set_SHIP2BILL_GENERATE_GLOBAL_PDF">';
+	print $form->selectyesno("SHIP2BILL_GENERATE_GLOBAL_PDF",$conf->global->SHIP2BILL_GENERATE_GLOBAL_PDF,1);
+	print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+	print '</form>';
+	print '</td></tr>';
+}
 
 if($conf->global->SHIP2BILL_VALID_INVOICE && $conf->global->STOCK_CALCULATE_ON_BILL) {
 	// Define warehouse to use if stock movement is after invoice validation
@@ -152,7 +171,7 @@ if($conf->global->SHIP2BILL_VALID_INVOICE && $conf->global->STOCK_CALCULATE_ON_B
 	print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
 	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 	print '<input type="hidden" name="action" value="set_SHIP2BILL_WARHOUSE_TO_USE">';
-	print $formproduct->selectWarehouses(!empty($conf->global->SHIP2BILL_WARHOUSE_TO_USE)?$conf->global->SHIP2BILL_WARHOUSE_TO_USE:'ifone', 'SHIP2BILL_WARHOUSE_TO_USE');
+	print $formproduct->selectWarehouses(!empty($conf->global->SHIP2BILL_WARHOUSE_TO_USE)?$conf->global->SHIP2BILL_WARHOUSE_TO_USE:'ifone', 'SHIP2BILL_WARHOUSE_TO_USE', '', 1);
 	print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 	print '</form>';
 	print '</td></tr>';

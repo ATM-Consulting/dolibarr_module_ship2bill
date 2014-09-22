@@ -22,6 +22,7 @@ class Ship2Bill {
 		}
 		
 		$nbFacture = 0;
+		$TFiles = array();
 		// Pour chaque id client
 		foreach($TExpedition as $id_client => $Tid_exp){
 			$f = $this->facture_create($id_client);
@@ -50,14 +51,16 @@ class Ship2Bill {
 			if($conf->global->SHIP2BILL_VALID_INVOICE) $f->validate($user, '', $conf->global->SHIP2BILL_WARHOUSE_TO_USE);
 			
 			// Génération du PDF
-			if($conf->global->SHIP2BILL_GENERATE_INVOICE_PDF) $this->facture_generate_pdf($f);
+			if(!empty($conf->global->SHIP2BILL_GENERATE_INVOICE_PDF)) $TFiles[] = $this->facture_generate_pdf($f);
 		}
+		
+		if($conf->global->SHIP2BILL_GENERATE_GLOBAL_PDF) $this->generate_global_pdf($TFiles);
 
 		return $nbFacture;
 	}
 
 	function facture_create($id_client) {
-		global $user, $db;
+		global $user, $db, $conf;
 		
 		$f = new Facture($db);
 		$f->socid = $id_client;
@@ -68,7 +71,7 @@ class Ship2Bill {
 		$f->type = 0;
 		$f->cond_reglement_id = (!empty($f->thirdparty->cond_reglement_id) ? $f->thirdparty->cond_reglement_id : 1);
 		$f->mode_reglement_id = $f->thirdparty->mode_reglement_id;
-		$f->modelpdf = 'crabe';
+		$f->modelpdf = !empty($conf->global->SHIP2BILL_GENERATE_INVOICE_PDF) ? $conf->global->SHIP2BILL_GENERATE_INVOICE_PDF : 'crabe';
 		$f->statut = 0;
 		$f->create($user);
 		
@@ -100,12 +103,12 @@ class Ship2Bill {
 			if (! empty($exp->linkedObjectsIds['commande'][0])) {
 				$ord = new Commande($db);
 				$ord->fetch($exp->linkedObjectsIds['commande'][0]);
-				$title.= $langs->trans('Order').' '.$ord->ref;
+				$title.= $langs->transnoentities('Order').' '.$ord->ref;
 				if(!empty($ord->ref_client)) $title.= ' / '.$ord->ref_client;
 				if(!empty($ord->date_commande)) $title.= ' ('.dol_print_date($ord->date_commande,'day').')';
 			}
 			
-			$title2 = $langs->trans('Shipment').' '.$exp->ref;
+			$title2 = $langs->transnoentities('Shipment').' '.$exp->ref;
 			if(!empty($exp->date_delivery)) $title2.= ' ('.dol_print_date($exp->date_delivery,'day').')';
 			if($conf->livraison_bon->enabled) {
 				$exp->fetchObjectLinked('','','','delivery');
@@ -114,7 +117,7 @@ class Ship2Bill {
 				if (! empty($exp->linkedObjectsIds['delivery'][0])) {
 					$liv = new Livraison($db);
 					$liv->fetch($exp->linkedObjectsIds['delivery'][0]);
-					$title2 = $langs->trans('Delivery').' '.$liv->ref;
+					$title2 = $langs->transnoentities('Delivery').' '.$liv->ref;
 					if(!empty($liv->date_delivery)) $title2.= ' ('.dol_print_date($liv->date_delivery,'day').')';
 				}
 			}
@@ -141,10 +144,10 @@ class Ship2Bill {
 		// Ajout d'un sous-total par expédition
 		if($conf->global->SHIP2BILL_ADD_SHIPMENT_SUBTOTAL) {
 			if($conf->subtotal->enabled) {
-				if(method_exists($sub, 'addSubTotalLine')) $sub->addSubTotalLine($f, $langs->trans('SubTotal'), 99);
+				if(method_exists($sub, 'addSubTotalLine')) $sub->addSubTotalLine($f, $langs->transnoentities('SubTotal'), 99);
 				else {
-					if((float)DOL_VERSION <= 3.4) $f->addline($f->id, $langs->trans('SubTotal'), 0,99,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
-					else $f->addline($langs->trans('SubTotal'), 0,99,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
+					if((float)DOL_VERSION <= 3.4) $f->addline($f->id, $langs->transnoentities('SubTotal'), 0,99,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
+					else $f->addline($langs->transnoentities('SubTotal'), 0,99,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
 				}
 			}
 		}
@@ -163,5 +166,62 @@ class Ship2Bill {
 			$outputlangs->setDefaultLang($newlang);
 		}
 		$result=facture_pdf_create($db, $f, $f->modelpdf, $outputlangs);
+		
+		if($result > 0) {
+			$objectref = dol_sanitizeFileName($f->ref);
+			$dir = $conf->facture->dir_output . "/" . $objectref;
+			$file = $dir . "/" . $objectref . ".pdf";
+			return $file;
+		}
+		
+		return '';
+	}
+
+	function generate_global_pdf($TFiles) {
+		global $langs, $conf;
+		
+        // Create empty PDF
+        $pdf=pdf_getInstance();
+        if (class_exists('TCPDF'))
+        {
+            $pdf->setPrintHeader(false);
+            $pdf->setPrintFooter(false);
+        }
+        $pdf->SetFont(pdf_getPDFFont($langs));
+
+        if (! empty($conf->global->MAIN_DISABLE_PDF_COMPRESSION)) $pdf->SetCompression(false);
+
+		// Add all others
+		foreach($TFiles as $file)
+		{
+			// Charge un document PDF depuis un fichier.
+			$pagecount = $pdf->setSourceFile($file);
+			for ($i = 1; $i <= $pagecount; $i++)
+			{
+				$tplidx = $pdf->importPage($i);
+				$s = $pdf->getTemplatesize($tplidx);
+				$pdf->AddPage($s['h'] > $s['w'] ? 'P' : 'L');
+				$pdf->useTemplate($tplidx);
+			}
+		}
+
+		// Create output dir if not exists
+		$diroutputpdf = DOL_DATA_ROOT.'/ship2bill';
+		dol_mkdir($diroutputpdf);
+
+		// Save merged file
+		$filename=strtolower(dol_sanitizeFileName($langs->transnoentities("ShipmentBilled")));
+		if ($pagecount)
+		{
+			$now=dol_now();
+			$file=$diroutputpdf.'/'.$filename.'_'.dol_print_date($now,'dayhourlog').'.pdf';
+			$pdf->Output($file,'F');
+			if (! empty($conf->global->MAIN_UMASK))
+			@chmod($file, octdec($conf->global->MAIN_UMASK));
+		}
+		else
+		{
+			setEventMessage($langs->trans('NoPDFAvailableForChecked'),'errors');
+		}
 	}
 }

@@ -88,7 +88,7 @@ class modShip2bill extends DolibarrModules
 
 		// Data directories to create when module is enabled.
 		// Example: this->dirs = array("/mymodule/temp");
-		$this->dirs = array();
+		$this->dirs = array('/ship2bill');
 
 		// Config pages. Put here list of php page, stored into mymodule/admin directory, to use to setup module.
 		$this->config_page_url = array("ship2bill_setup.php@ship2bill");
