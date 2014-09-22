@@ -13,5 +13,7 @@ ValidInvoice=Valider automatiquement les factures créées
 GenerateInvoicePDF=Modèle à utiliser pour générer automatiquement le document facture (le temps de traitement peut être plus long)
 GenerateGlobalPDF=Générer un fichier PDF global contenant tous les PDF des factures créées
 WarehouseToUseAfterInvoiceValidation=Entrepôt à utiliser pour la gestion de stock après validation de la facture
+GlobalGeneratedFiles=Fichiers factures générés
+ShipmentBilled=Expéditions facturées
 
 Ship2BillSetup=Configuration du module "Expéditions facturables"

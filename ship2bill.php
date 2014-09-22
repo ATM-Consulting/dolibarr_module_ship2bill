@@ -26,6 +26,7 @@
 require 'config.php';
 dol_include_once('/expedition/class/expedition.class.php');
 dol_include_once('/ship2bill/class/ship2bill.class.php');
+dol_include_once('/core/class/html.formfile.class.php');
 
 $langs->load("sendings");
 $langs->load("deliveries");
@@ -254,6 +255,13 @@ if ($resql)
 		print '<br /><input style="float:right" class="butAction" type="submit" name="subCreateBill" value="'.$langs->trans('CreateInvoiceButton').'" />';
 	}
 	print '</form>';
+	
+	$filedir=$conf->ship2bill->multidir_output[$conf->entity];
+
+	print '<br><br>';
+	// We disable multilang because we concat already existing pdf.
+	$formfile = new FormFile($db);
+	$formfile->show_documents('ship2bill','',$filedir,$urlsource,false,true,'',1,1,0,48,1,$param,$langs->trans("GlobalGeneratedFiles"));
 	
 	$db->free($resql);
 }

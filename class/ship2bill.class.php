@@ -206,7 +206,7 @@ class Ship2Bill {
 		}
 
 		// Create output dir if not exists
-		$diroutputpdf = DOL_DATA_ROOT.'/ship2bill';
+		$diroutputpdf = $conf->ship2bill->multidir_output[$conf->entity];
 		dol_mkdir($diroutputpdf);
 
 		// Save merged file

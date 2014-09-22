@@ -13,5 +13,7 @@ ValidInvoice=Automatically validate created invoices
 GenerateInvoicePDF=Model to use to automatically generate the invoices document (may take a little more time)
 GenerateGlobalPDF=Generate a global PDF file containing all created invoices PDF
 WarehouseToUseAfterInvoiceValidation=Warehouse to use for stock management after invoice validation
+GlobalGeneratedFiles=Invoice generated global files
+ShipmentBilled=Billed shipments
 
 Ship2BillSetup=Shipment to invoice module setup
