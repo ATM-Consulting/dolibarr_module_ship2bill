@@ -163,7 +163,7 @@ if ($resql)
 	if ($search_ref_liv) $param.= "&amp;search_ref_liv=".$search_ref_liv;
 	if ($search_societe) $param.= "&amp;search_societe=".$search_societe;
 
-	print_barre_liste($langs->trans('ShipmentToBill'), $page, "liste.php",$param,$sortfield,$sortorder,'',$num);
+	print_barre_liste($langs->trans('ShipmentToBill'), $page, "ship2bill.php",$param,$sortfield,$sortorder,'',$num);
 	
 	print '<form name="formAfficheListe" method="POST" action="ship2bill.php">';
 
