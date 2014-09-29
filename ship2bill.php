@@ -22,7 +22,8 @@
  *      \ingroup    expedition
  *      \brief      Page to list all shipments
  */
-
+set_time_limit(180);
+ 
 require 'config.php';
 dol_include_once('/expedition/class/expedition.class.php');
 dol_include_once('/ship2bill/class/ship2bill.class.php');
