@@ -2,7 +2,7 @@
 
 class Ship2Bill {
 	
-	function generate_factures($TExpedition) {
+	function generate_factures($TExpedition, $dateFact=0) {
 		global $conf, $langs, $db, $user;
 		
 		// Inclusion des classes nécessaires
@@ -21,11 +21,15 @@ class Ship2Bill {
 			$sub = new ActionsSubtotal();
 		}
 		
+		if(empty($dateFact)) {
+			$dateFact = dol_now();
+		}
+		
 		$nbFacture = 0;
 		$TFiles = array();
 		// Pour chaque id client
 		foreach($TExpedition as $id_client => $Tid_exp){
-			$f = $this->facture_create($id_client);
+			$f = $this->facture_create($id_client, $dateFact);
 			$nbFacture++;
 			
 			//Pour chaque id expédition
@@ -59,7 +63,7 @@ class Ship2Bill {
 		return $nbFacture;
 	}
 
-	function facture_create($id_client) {
+	function facture_create($id_client, $dateFact) {
 		global $user, $db, $conf;
 		
 		$f = new Facture($db);
@@ -67,7 +71,7 @@ class Ship2Bill {
 		$f->fetch_thirdparty();
 		
 		// Données obligatoires
-		$f->date = dol_now();
+		$f->date = $dateFact;
 		$f->type = 0;
 		$f->cond_reglement_id = (!empty($f->thirdparty->cond_reglement_id) ? $f->thirdparty->cond_reglement_id : 1);
 		$f->mode_reglement_id = $f->thirdparty->mode_reglement_id;

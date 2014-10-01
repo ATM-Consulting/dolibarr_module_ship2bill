@@ -28,6 +28,7 @@ require 'config.php';
 dol_include_once('/expedition/class/expedition.class.php');
 dol_include_once('/ship2bill/class/ship2bill.class.php');
 dol_include_once('/core/class/html.formfile.class.php');
+dol_include_once('/core/class/html.form.class.php');
 
 $langs->load("sendings");
 $langs->load("deliveries");
@@ -62,12 +63,18 @@ $limit = $conf->liste_limit;
 
 if(isset($_REQUEST['subCreateBill'])){
 	$TExpedition = $_REQUEST['TExpedition'];
+	$dateFact = GETPOST('dtfact');
+	if(empty($dateFact)) {
+		$dateFact = dol_now();
+	} else {
+		$dateFact = dol_mktime(0, 0, 0, GETPOST('dtfactmonth'), GETPOST('dtfactday'), GETPOST('dtfactyear'));
+	}
 	
 	if(empty($TExpedition)) {
 		setEventMessage($langs->trans('NoShipmentSelected'), 'warnings');
 	} else {
 		$ship2bill = new Ship2Bill();
-		$nbFacture = $ship2bill->generate_factures($TExpedition);
+		$nbFacture = $ship2bill->generate_factures($TExpedition, $dateFact);
 	
 		setEventMessage($langs->trans('InvoiceCreated', $nbFacture));
 		//header("Location: ".dol_buildpath('/compta/facture/list.php',2));
@@ -269,7 +276,12 @@ if ($resql)
 
 	print "</table>";
 	if($num > 0) {
-		print '<br /><input style="float:right" class="butAction" type="submit" name="subCreateBill" value="'.$langs->trans('CreateInvoiceButton').'" />';
+		$f = new Form($db);
+		print '<br><div style="text-align: right;">';
+		print $langs->trans('Date').' : ';
+		$f->select_date('', 'dtfact');
+		print '<input class="butAction" type="submit" name="subCreateBill" value="'.$langs->trans('CreateInvoiceButton').'" />';
+		print '</div>';
 	}
 	print '</form>';
 
