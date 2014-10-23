@@ -15,5 +15,6 @@ GenerateGlobalPDF=Générer un fichier PDF global contenant tous les PDF des fac
 WarehouseToUseAfterInvoiceValidation=Entrepôt à utiliser pour la gestion de stock après validation de la facture
 GlobalGeneratedFiles=Fichiers factures générés
 ShipmentBilled=Expéditions facturées
+ShipmentInvoiceOnlyShippingProducts=Afficher dans la facture uniquement les produits avec une quantité expédié supérieur à 0
 
 Ship2BillSetup=Configuration du module "Expéditions facturables"
