@@ -117,18 +117,6 @@ class InterfaceShip2billWorkflow
         // Data and type of action are stored into $object and $action
         // Users
 
-        // Bills
-        if ($action == 'LINEBILL_INSERT') {
-			
-			if($object->qty == 0 && $object->origin == "shipping" && $conf->global->SHIPMENT_GETS_ALL_ORDER_PRODUCTS){
-				$this->db->query("DELETE FROM ".MAIN_DB_PREFIX."facturedet WHERE rowid = ".$object->id);
-			}
-        	
-            dol_syslog(
-                "Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id
-            );
-		}
-
         return 0;
     }
 }
