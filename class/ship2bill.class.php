@@ -93,6 +93,46 @@ class Ship2Bill {
 			if((float)DOL_VERSION <= 3.4) $f->addline($f->id, $l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'',0,0,$orderline->fk_fournprice,$orderline->pa_ht);
 			else $f->addline($l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'',0,0,$orderline->fk_fournprice,$orderline->pa_ht);
 		}
+		
+		//Récupération des services de la commande si SHIP2BILL_GET_SERVICES_FROM_ORDER
+		if($conf->global->SHIP2BILL_GET_SERVICES_FROM_ORDER && (float)DOL_VERSION >= 3.5){
+			dol_include_once('/commande/class/commande.class.php');
+			
+			$commande = new Commande($db);
+			$commande->fetch($exp->origin_id);
+			foreach($commande->lines as $line){
+
+				//Prise en compte des services et des lignes libre uniquement
+				if($line->fk_product_type == 1 || (empty($line->fk_product_type) && empty($line->fk_product))){
+					
+					$f->addline(
+							$line->desc,
+							$line->price,
+							$line->qty,
+							$line->tva_tx,
+							0,0,
+							$line->fk_product,
+							$line->remise_percent,
+							$line->date_start,
+							$line->date_end,
+							0,0,
+							$line->fk_remise_except,
+							'HT',
+							0,
+							0,
+							$line->rang,
+							$line->special_code,
+							$line->origin,
+							$line->origin_id,
+							$line->fk_parent_line,
+							$line->fk_fournprice,
+							$line->pa_ht,
+							$line->libelle,
+							$line->array_option
+					);
+				}
+			}
+		}
 	}
 	
 	function facture_add_title (&$f, &$exp, &$sub) {
