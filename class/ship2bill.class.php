@@ -204,7 +204,7 @@ class Ship2Bill {
 		$f->fetch($f->id);
 		
 		$outputlangs = $langs;
-		if ($conf->global->MAIN_MULTILANGS) {$newlang=$object->client->default_lang;}
+		if ($conf->global->MAIN_MULTILANGS) {$newlang=$f->client->default_lang;}
 		if (! empty($newlang)) {
 			$outputlangs = new Translate("",$conf);
 			$outputlangs->setDefaultLang($newlang);
