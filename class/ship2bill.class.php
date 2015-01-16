@@ -67,6 +67,15 @@ class Ship2Bill {
 		global $user, $db, $conf;
 		
 		$f = new Facture($db);
+
+		// Si le module Client facturé est activé et que la constante BILLANOTHERCUSTOMER_USE_PARENT_BY_DEFAULT est à 1, on facture la maison mère 
+		if($conf->billanothercustomer->enabled && $conf->global->BILLANOTHERCUSTOMER_USE_PARENT_BY_DEFAULT) {
+			$soc = new Societe($db);
+			$soc->fetch($id_client);
+			if($soc->parent > 0)
+				$id_client = $soc->parent;
+		}
+		
 		$f->socid = $id_client;
 		$f->fetch_thirdparty();
 		
