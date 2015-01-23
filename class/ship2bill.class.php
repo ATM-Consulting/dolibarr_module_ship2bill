@@ -67,6 +67,15 @@ class Ship2Bill {
 		global $user, $db, $conf;
 		
 		$f = new Facture($db);
+
+		// Si le module Client facturé est activé et que la constante BILLANOTHERCUSTOMER_USE_PARENT_BY_DEFAULT est à 1, on facture la maison mère 
+		if($conf->billanothercustomer->enabled && $conf->global->BILLANOTHERCUSTOMER_USE_PARENT_BY_DEFAULT) {
+			$soc = new Societe($db);
+			$soc->fetch($id_client);
+			if($soc->parent > 0)
+				$id_client = $soc->parent;
+		}
+		
 		$f->socid = $id_client;
 		$f->fetch_thirdparty();
 		
@@ -90,8 +99,12 @@ class Ship2Bill {
 			if($conf->global->SHIPMENT_GETS_ALL_ORDER_PRODUCTS && $l->qty == 0) continue;
 			$orderline = new OrderLine($db);
 			$orderline->fetch($l->fk_origin_line);
-			if((float)DOL_VERSION <= 3.4) $f->addline($f->id, $l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'shipping',$exp->id,0,$orderline->fk_fournprice,$orderline->pa_ht);
-			else $f->addline($l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'shipping',$exp->id,0,$orderline->fk_fournprice,$orderline->pa_ht);
+			
+			// Sélectionne uniquement les produits
+			if ($l->fk_product_type != 1) {
+				if((float)DOL_VERSION <= 3.4) $f->addline($f->id, $l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'shipping',$exp->id,0,$orderline->fk_fournprice,$orderline->pa_ht);
+				else $f->addline($l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'shipping',$exp->id,0,$orderline->fk_fournprice,$orderline->pa_ht);
+			}
 		}
 		
 		//Récupération des services de la commande si SHIP2BILL_GET_SERVICES_FROM_ORDER
@@ -104,7 +117,6 @@ class Ship2Bill {
 
 				//Prise en compte des services et des lignes libre uniquement
 				if($line->fk_product_type == 1 || (empty($line->fk_product_type) && empty($line->fk_product))){
-					
 					$f->addline(
 							$line->desc,
 							$line->price,
