@@ -97,13 +97,15 @@ class Ship2Bill {
 		// Pour chaque produit de l'expédition, ajout d'une ligne de facture
 		foreach($exp->lines as $l){
 			if($conf->global->SHIPMENT_GETS_ALL_ORDER_PRODUCTS && $l->qty == 0) continue;
-			$orderline = new OrderLine($db);
-			$orderline->fetch($l->fk_origin_line);
-			
 			// Sélectionne uniquement les produits
-			if ($l->fk_product_type != 1) {
-				if((float)DOL_VERSION <= 3.4) $f->addline($f->id, $l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'shipping',$exp->id,0,$orderline->fk_fournprice,$orderline->pa_ht);
-				else $f->addline($l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'shipping',$exp->id,0,$orderline->fk_fournprice,$orderline->pa_ht);
+			if ($l->fk_product_type == 0) {
+				$orderline = new OrderLine($db);
+				$orderline->fetch($l->fk_origin_line);
+				
+				if((float)DOL_VERSION <= 3.4)
+					$f->addline($f->id, $l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'shipping',$exp->id,0,$orderline->fk_fournprice,$orderline->pa_ht);
+				else
+					$f->addline($l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'shipping',$exp->id,0,$orderline->fk_fournprice,$orderline->pa_ht);
 			}
 		}
 		
@@ -113,6 +115,7 @@ class Ship2Bill {
 			
 			$commande = new Commande($db);
 			$commande->fetch($exp->origin_id);
+			
 			foreach($commande->lines as $line){
 
 				//Prise en compte des services et des lignes libre uniquement
@@ -132,7 +135,7 @@ class Ship2Bill {
 							'HT',
 							0,
 							0,
-							$line->rang,
+							-1,
 							$line->special_code,
 							'commande',
 							$commande->id,
