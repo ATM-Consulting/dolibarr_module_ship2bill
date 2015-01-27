@@ -134,7 +134,7 @@ class Ship2Bill {
 							$line->fk_remise_except,
 							'HT',
 							0,
-							0,
+							$line->fk_product_type,
 							-1,
 							$line->special_code,
 							'shipping',
