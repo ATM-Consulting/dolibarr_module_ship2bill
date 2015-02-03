@@ -127,25 +127,25 @@ $(document).ready(function() {
 </script>
 <?php
 
-$sql = "SELECT e.rowid, e.ref, e.date_delivery as date_expedition, l.date_delivery as date_livraison, e.fk_statut";
-$sql.= ", s.nom as socname, s.rowid as socid";
-$sql.= " FROM (".MAIN_DB_PREFIX."expedition as e";
+$sql = "SELECT e.rowid, e.ref, e.date_delivery as date_expedition, l.date_delivery as date_livraison, e.fk_statut
+		, s.nom as socname, s.rowid as socid
+		FROM (".MAIN_DB_PREFIX."expedition as e";
 if (!$user->rights->societe->client->voir && !$socid)	// Internal user with no permission to see all
 {
 	$sql.= ", ".MAIN_DB_PREFIX."societe_commerciaux as sc";
 }
-$sql.= ")";
-$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as s ON s.rowid = e.fk_soc";
-$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee ON e.rowid = ee.fk_source AND ee.sourcetype = 'shipping'";
-$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."livraison as l ON l.rowid = ee.fk_target AND ee.targettype = 'delivery'";
-$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture as f ON f.rowid = ee.fk_target AND ee.targettype = 'facture'";
-$sql.= " WHERE e.entity = ".$conf->entity;
-$sql.= " AND e.fk_statut = 1";
-$sql.= " AND f.rowid IS NULL";
+$sql.= ")
+		LEFT JOIN ".MAIN_DB_PREFIX."societe as s ON s.rowid = e.fk_soc
+		LEFT JOIN llx_element_element as ee2 ON (e.rowid = ee2.fk_source AND ee2.sourcetype = 'shipping' AND ee2.targettype = 'facture')
+		LEFT JOIN llx_element_element as ee ON (e.rowid = ee.fk_source AND ee.sourcetype = 'shipping' AND ee.targettype = 'delivery')
+		LEFT JOIN llx_livraison as l ON l.rowid = ee.fk_target 
+		LEFT JOIN llx_facture as f ON f.rowid = ee2.fk_target
+		WHERE e.entity = ".$conf->entity."
+		AND e.fk_statut > 0
+		AND f.rowid IS NULL";
 if (!$user->rights->societe->client->voir && !$socid)	// Internal user with no permission to see all
 {
-	$sql.= " AND e.fk_soc = sc.fk_soc";
-	$sql.= " AND sc.fk_user = " .$user->id;
+	$sql.= " AND e.fk_soc = sc.fk_soc AND sc.fk_user = " .$user->id;
 }
 if ($socid)
 {
