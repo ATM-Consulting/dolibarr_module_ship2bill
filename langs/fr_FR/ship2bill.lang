@@ -9,6 +9,7 @@ InvoiceCreated=%s facture(s) créée(s)
 AddShipmentAsTitles=Ajouter les informations des expéditions en tant que titre
 AddShipmentSubtotal=Ajouter un sous-total par expédition
 CloseShipment=Clôturer automatiquement les expéditions facturées
+CreateOneInvoicePerShipment=Créer une facture par expédition
 ValidInvoice=Valider automatiquement les factures créées
 GenerateInvoicePDF=Modèle à utiliser pour générer automatiquement le document facture (le temps de traitement peut être plus long)
 GenerateGlobalPDF=Générer un fichier PDF global contenant tous les PDF des factures créées

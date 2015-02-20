@@ -9,6 +9,7 @@ InvoiceCreated=%s invoice(s) created
 AddShipmentAsTitles=Add shipment informations as titles
 AddShipmentSubtotal=Add sub-total for each shipment
 CloseShipment=Automatically close shipment after invoice creation
+CreateOneInvoicePerShipment=Create one invoice per shipment
 ValidInvoice=Automatically validate created invoices
 GenerateInvoicePDF=Model to use to automatically generate the invoices document (may take a little more time)
 GenerateGlobalPDF=Generate a global PDF file containing all created invoices PDF

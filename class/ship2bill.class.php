@@ -29,14 +29,26 @@ class Ship2Bill {
 		$TFiles = array();
 		// Pour chaque id client
 		foreach($TExpedition as $id_client => $Tid_exp){
-			$f = $this->facture_create($id_client, $dateFact);
-			$nbFacture++;
+			// Création d'une facture regroupant plusieurs expéditions (par défaut)
+			if(empty($conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT)) {
+				$f = $this->facture_create($id_client, $dateFact);
+				$nbFacture++;
+			}
 			
-			//Pour chaque id expédition
+			// Pour chaque id expédition
 			foreach($Tid_exp as $id_exp => $val) {
 				// Chargement de l'expédition
 				$exp = new Expedition($db);
 				$exp->fetch($id_exp);
+				
+				// Création d'une facture par expédition si option activée
+				if(!empty($conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT)) {
+					$f = $this->facture_create($id_client, $dateFact);
+					$f->note_public = $exp->note_public;
+					$f->note_private = $exp->note_private;
+					$f->update($user);
+					$nbFacture++;
+				}
 				
 				// Lien avec la facture
 				$f->add_object_linked('shipping', $exp->id);

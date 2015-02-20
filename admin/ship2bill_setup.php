@@ -111,7 +111,21 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">'
 print '</form>';
 print '</td></tr>';
 
-// Close automatically shipments
+// Create one invoice per shipment
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("CreateOneInvoicePerShipment").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="300">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_SHIP2BILL_INVOICE_PER_SHIPMENT">';
+print $form->selectyesno("SHIP2BILL_INVOICE_PER_SHIPMENT",$conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT,1);
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
+// Get services from order
 $var=!$var;
 print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("GetServicesFromOrder").'</td>';
