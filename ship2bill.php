@@ -136,13 +136,15 @@ if (!$user->rights->societe->client->voir && !$socid)	// Internal user with no p
 }
 $sql.= ")
 		LEFT JOIN ".MAIN_DB_PREFIX."societe as s ON s.rowid = e.fk_soc
+		LEFT JOIN llx_element_element as ee3 ON (e.rowid = ee3.fk_target AND ee3.sourcetype = 'commande' AND ee3.targettype = 'shipping')
 		LEFT JOIN llx_element_element as ee2 ON (e.rowid = ee2.fk_source AND ee2.sourcetype = 'shipping' AND ee2.targettype = 'facture')
 		LEFT JOIN llx_element_element as ee ON (e.rowid = ee.fk_source AND ee.sourcetype = 'shipping' AND ee.targettype = 'delivery')
 		LEFT JOIN llx_livraison as l ON l.rowid = ee.fk_target 
 		LEFT JOIN llx_facture as f ON f.rowid = ee2.fk_target
+		LEFT JOIN llx_commande as c ON c.rowid = ee3.fk_source
 		WHERE e.entity = ".$conf->entity."
-		AND e.fk_statut > 0
-		AND f.rowid IS NULL";
+		AND e.fk_statut >= 1
+		AND f.rowid IS NULL AND c.fk_statut != 3";
 if (!$user->rights->societe->client->voir && !$socid)	// Internal user with no permission to see all
 {
 	$sql.= " AND e.fk_soc = sc.fk_soc AND sc.fk_user = " .$user->id;
