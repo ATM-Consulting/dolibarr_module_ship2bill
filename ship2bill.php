@@ -144,7 +144,7 @@ $sql.= ")
 		LEFT JOIN llx_commande as c ON c.rowid = ee3.fk_source
 		WHERE e.entity = ".$conf->entity."
 		AND e.fk_statut >= 1
-		AND f.rowid IS NULL AND c.fk_statut != 3";
+		AND f.rowid IS NULL AND c.facture = 0";
 if (!$user->rights->societe->client->voir && !$socid)	// Internal user with no permission to see all
 {
 	$sql.= " AND e.fk_soc = sc.fk_soc AND sc.fk_user = " .$user->id;
