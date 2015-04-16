@@ -277,7 +277,7 @@ if ($resql)
 	}
 
 	print "</table>";
-	if($num > 0) {
+	if($num > 0 && $user->rights->facture->creer) {
 		$f = new Form($db);
 		print '<br><div style="text-align: right;">';
 		print $langs->trans('Date').' : ';
@@ -289,7 +289,6 @@ if ($resql)
 
 	if($conf->global->SHIP2BILL_GENERATE_GLOBAL_PDF) {
 		print '<br><br>';
-		// We disable multilang because we concat already existing pdf.
 		$formfile = new FormFile($db);
 		$formfile->show_documents('ship2bill','',$diroutputpdf,$urlsource,false,true,'',1,1,0,48,1,$param,$langs->trans("GlobalGeneratedFiles"));
 	}
