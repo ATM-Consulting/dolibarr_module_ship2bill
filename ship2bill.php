@@ -166,8 +166,6 @@ if ($resql)
 {
 	$num = $db->num_rows($resql);
 
-	$expedition = new Expedition($db);
-
 	$param="&amp;socid=$socid";
 	if ($search_ref_exp) $param.= "&amp;search_ref_exp=".$search_ref_exp;
 	if ($search_ref_liv) $param.= "&amp;search_ref_liv=".$search_ref_liv;
@@ -189,6 +187,7 @@ if ($resql)
 		print_liste_field_titre($langs->trans("DateReceived"),"ship2bill.php","e.date_expedition","",$param, 'align="center"',$sortfield,$sortorder);
 	}
 	print_liste_field_titre($langs->trans("Status"),"ship2bill.php","e.fk_statut","",$param,'align="right"',$sortfield,$sortorder);
+	print_liste_field_titre($langs->trans("AmountHT"),"ship2bill.php","","",$param,'align="right"',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("ShipmentToBill"),"shiptobill.php","","",$param, 'align="center"',$sortfield,$sortorder);
 	print "</tr>\n";
 	
@@ -208,6 +207,7 @@ if ($resql)
 		print '<td class="liste_titre">&nbsp;</td>';
 	}
 	print '<td class="liste_titre" align="right">';
+	print '<td class="liste_titre" align="right">';
 	// Développé dans la 3.7
 	//print img_search();
 	//print img_searchclear();
@@ -221,11 +221,13 @@ if ($resql)
 	print "</tr>\n";
 	
 	$var=True;
+	$total = 0;
 
 	while ($i < min($num,$limit))
 	{
 		$objp = $db->fetch_object($resql);
 		$checkbox = 'TExpedition['.$objp->socid.']['.$objp->rowid.']';
+		$shipment->fetch($objp->rowid);
 
 		$var=!$var;
 		print "<tr ".$bc[$var].">";
@@ -264,7 +266,8 @@ if ($resql)
 			print "</td>\n";
 		}
 
-		print '<td align="right">'.$expedition->LibStatut($objp->fk_statut,5).'</td>';
+		print '<td align="right">'.$shipment->getLibStatut(5).'</td>';
+		print '<td align="right">'.price($shipment->total_ht).'</td>';
 		
 		// Sélection expé à facturer
 		print '<td align="center">';
@@ -272,8 +275,25 @@ if ($resql)
 		print "</td>\n";
 		
 		print "</tr>\n";
+		
+		$total += $shipment->total_ht;
 
 		$i++;
+	}
+
+	if ($total>0)
+	{
+		print '<tr class="liste_total">';
+		if($num<$limit){
+			print '<td align="left">'.$langs->trans("TotalHT").'</td>';
+		}
+		else
+		{
+			print '<td align="left">'.$langs->trans("TotalHTforthispage").'</td>';
+		}
+		
+		print '<td colspan="6" align="right"">'.price($total).'<td>&nbsp;</td>';
+		print '</tr>';
 	}
 
 	print "</table>";
