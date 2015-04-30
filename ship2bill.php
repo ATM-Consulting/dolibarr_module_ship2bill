@@ -46,6 +46,7 @@ $action = GETPOST('action','alpha');
 $search_ref_exp = GETPOST("search_ref_exp");
 $search_ref_liv = GETPOST('search_ref_liv');
 $search_societe = GETPOST("search_societe");
+$search_status = GETPOST("search_status");
 
 $sortfield = GETPOST('sortfield','alpha');
 $sortorder = GETPOST('sortorder','alpha');
@@ -102,6 +103,7 @@ if (GETPOST("button_removefilter_x"))
     $search_ref_exp='';
     $search_ref_liv='';
     $search_societe='';
+	$search_status='';
 }
 
 
@@ -156,6 +158,7 @@ if ($socid)
 if ($search_ref_exp) $sql .= natural_search('e.ref', $search_ref_exp);
 if ($search_ref_liv) $sql .= natural_search('l.ref', $search_ref_liv);
 if ($search_societe) $sql .= natural_search('s.nom', $search_societe);
+if ($search_status != '')  $sql .= " AND e.fk_statut = ".$search_status;
 
 $sql.= $db->order($sortfield,$sortorder);
 $sql.= $db->plimit($limit + 1,$offset);
@@ -165,11 +168,13 @@ $resql=$db->query($sql);
 if ($resql)
 {
 	$num = $db->num_rows($resql);
+	$colspan = 4;
 
 	$param="&amp;socid=$socid";
 	if ($search_ref_exp) $param.= "&amp;search_ref_exp=".$search_ref_exp;
 	if ($search_ref_liv) $param.= "&amp;search_ref_liv=".$search_ref_liv;
 	if ($search_societe) $param.= "&amp;search_societe=".$search_societe;
+	if ($search_status)  $param.= "&amp;search_status=".$search_status;
 
 	print_barre_liste($langs->trans('ShipmentToBill'), $page, "ship2bill.php",$param,$sortfield,$sortorder,'',$num);
 	
@@ -201,12 +206,21 @@ if ($resql)
 	print '</td>';
 	print '<td class="liste_titre">&nbsp;</td>';
 	if($conf->livraison_bon->enabled) {
+		$colspan += 2;
 		print '<td class="liste_titre">';
 		print '<input class="flat" size="10" type="text" name="search_ref_liv" value="'.$search_ref_liv.'"';
 		print '</td>';
 		print '<td class="liste_titre">&nbsp;</td>';
 	}
+	
+	//print '<td class="liste_titre" align="right">';
 	print '<td class="liste_titre" align="right">';
+	$TStatus[0] = $langs->trans('StatusSendingDraftShort');
+	$TStatus[1] = $langs->trans('StatusSendingValidatedShort');
+	$TStatus[2] = $langs->trans('StatusSendingProcessedShort');
+	$f = new Form($db);
+	print $f->selectarray('search_status', $TStatus, $search_status, true);
+	print '</td>';
 	print '<td class="liste_titre" align="right">';
 	// Développé dans la 3.7
 	//print img_search();
@@ -292,7 +306,7 @@ if ($resql)
 			print '<td align="left">'.$langs->trans("TotalHTforthispage").'</td>';
 		}
 		
-		print '<td colspan="6" align="right"">'.price($total).'<td>&nbsp;</td>';
+		print '<td colspan="'.$colspan.'" align="right"">'.price($total).'<td>&nbsp;</td>';
 		print '</tr>';
 	}
 
