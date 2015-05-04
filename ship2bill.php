@@ -158,7 +158,7 @@ if ($socid)
 if ($search_ref_exp) $sql .= natural_search('e.ref', $search_ref_exp);
 if ($search_ref_liv) $sql .= natural_search('l.ref', $search_ref_liv);
 if ($search_societe) $sql .= natural_search('s.nom', $search_societe);
-if ($search_status != -1)  $sql .= " AND e.fk_statut = ".$search_status;
+if ($search_status != -1 && $search_status != '')  $sql .= " AND e.fk_statut = ".$search_status;
 
 $sql.= $db->order($sortfield,$sortorder);
 $sql.= $db->plimit($limit + 1,$offset);
