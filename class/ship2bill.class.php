@@ -62,6 +62,11 @@ class Ship2Bill {
 				// Clôture de l'expédition
 				if($conf->global->SHIP2BILL_CLOSE_SHIPMENT) $exp->set_billed();
 			}
+			
+			// Ajout notes sur facture si une seule expé
+			if(count($Tid_exp) == 1) {
+				$f->update_note($exp->note_public, '_public');
+			}
 				
 			// Validation de la facture
 			if($conf->global->SHIP2BILL_VALID_INVOICE) $f->validate($user, '', $conf->global->SHIP2BILL_WARHOUSE_TO_USE);
