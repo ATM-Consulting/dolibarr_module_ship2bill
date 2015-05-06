@@ -44,6 +44,7 @@ $hookmanager->initHooks(array('invoicecard'));
 
 $action = GETPOST('action','alpha');
 $search_ref_exp = GETPOST("search_ref_exp");
+$search_ref_cde = GETPOST("search_ref_cde");
 $search_ref_liv = GETPOST('search_ref_liv');
 $search_societe = GETPOST("search_societe");
 $search_status = GETPOST("search_status");
@@ -101,6 +102,7 @@ if ($action == 'remove_file')
 if (GETPOST("button_removefilter_x"))
 {
     $search_ref_exp='';
+	$search_ref_cde='';
     $search_ref_liv='';
     $search_societe='';
 	$search_status='';
@@ -130,7 +132,7 @@ $(document).ready(function() {
 <?php
 
 $sql = "SELECT e.rowid, e.ref, e.date_delivery as date_expedition, l.date_delivery as date_livraison, e.fk_statut
-		, s.nom as socname, s.rowid as socid
+		, s.nom as socname, s.rowid as socid, c.rowid as cdeid, c.ref as cderef
 		FROM (".MAIN_DB_PREFIX."expedition as e";
 if (!$user->rights->societe->client->voir && !$socid)	// Internal user with no permission to see all
 {
@@ -156,6 +158,7 @@ if ($socid)
 	$sql.= " AND e.fk_soc = ".$socid;
 }
 if ($search_ref_exp) $sql .= natural_search('e.ref', $search_ref_exp);
+if ($search_ref_cde) $sql .= natural_search('c.ref', $search_ref_cde);
 if ($search_ref_liv) $sql .= natural_search('l.ref', $search_ref_liv);
 if ($search_societe) $sql .= natural_search('s.nom', $search_societe);
 if ($search_status != -1 && $search_status != '')  $sql .= " AND e.fk_statut = ".$search_status;
@@ -172,6 +175,7 @@ if ($resql)
 
 	$param="&amp;socid=$socid";
 	if ($search_ref_exp) $param.= "&amp;search_ref_exp=".$search_ref_exp;
+	if ($search_ref_cde) $param.= "&amp;search_ref_cde=".$search_ref_cde;
 	if ($search_ref_liv) $param.= "&amp;search_ref_liv=".$search_ref_liv;
 	if ($search_societe) $param.= "&amp;search_societe=".$search_societe;
 	if ($search_status)  $param.= "&amp;search_status=".$search_status;
@@ -185,6 +189,7 @@ if ($resql)
 
 	print '<tr class="liste_titre">';
 	print_liste_field_titre($langs->trans("Ref"),"ship2bill.php","e.ref","",$param,'',$sortfield,$sortorder);
+	print_liste_field_titre($langs->trans("RefOrder"),"ship2bill.php","c.ref","",$param,'',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("Company"),"ship2bill.php","s.nom", "", $param,'align="left"',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("DateDeliveryPlanned"),"ship2bill.php","e.date_delivery","",$param, 'align="center"',$sortfield,$sortorder);
 	if($conf->livraison_bon->enabled) {
@@ -200,6 +205,9 @@ if ($resql)
 	print '<tr class="liste_titre">';
 	print '<td class="liste_titre">';
 	print '<input class="flat" size="10" type="text" name="search_ref_exp" value="'.$search_ref_exp.'">';
+    print '</td>';
+    print '<td class="liste_titre">';
+	print '<input class="flat" size="10" type="text" name="search_ref_cde" value="'.$search_ref_cde.'">';
     print '</td>';
 	print '<td class="liste_titre" align="left">';
 	print '<input class="flat" type="text" size="10" name="search_societe" value="'.dol_escape_htmltag($search_societe).'">';
@@ -246,10 +254,17 @@ if ($resql)
 		$var=!$var;
 		print "<tr ".$bc[$var].">";
 		print "<td>";
-		$shipment->id=$objp->rowid;
-		$shipment->ref=$objp->ref;
 		print $shipment->getNomUrl(1);
 		print "</td>\n";
+		// Order
+		print "<td>";
+		$commande = new Commande($db);
+		//$commande->fetch($shipment->origin_id);
+		$commande->id = $objp->cdeid;
+		$commande->ref = $objp->cderef;
+		print $commande->getNomUrl(1);
+		print "</td>\n";
+		
 		// Third party
 		print '<td>';
 		$companystatic->id=$objp->socid;
