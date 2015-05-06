@@ -21,6 +21,11 @@ class Ship2Bill {
 			$sub = new ActionsSubtotal();
 		}
 		
+		// Option pour la génération PDF
+		$hidedetails = (! empty($conf->global->MAIN_GENERATE_DOCUMENTS_HIDE_DETAILS) ? 1 : 0);
+		$hidedesc = (! empty($conf->global->MAIN_GENERATE_DOCUMENTS_HIDE_DESC) ? 1 : 0);
+		$hideref = (! empty($conf->global->MAIN_GENERATE_DOCUMENTS_HIDE_REF) ? 1 : 0);
+		
 		if(empty($dateFact)) {
 			$dateFact = dol_now();
 		}
@@ -72,7 +77,7 @@ class Ship2Bill {
 			if($conf->global->SHIP2BILL_VALID_INVOICE) $f->validate($user, '', $conf->global->SHIP2BILL_WARHOUSE_TO_USE);
 			
 			// Génération du PDF
-			if(!empty($conf->global->SHIP2BILL_GENERATE_INVOICE_PDF)) $TFiles[] = $this->facture_generate_pdf($f);
+			if(!empty($conf->global->SHIP2BILL_GENERATE_INVOICE_PDF)) $TFiles[] = $this->facture_generate_pdf($f, $hidedetails, $hidedesc, $hideref);
 		}
 		
 		if($conf->global->SHIP2BILL_GENERATE_GLOBAL_PDF) $this->generate_global_pdf($TFiles);
@@ -229,7 +234,7 @@ class Ship2Bill {
 		}
 	}
 	
-	function facture_generate_pdf(&$f) {
+	function facture_generate_pdf(&$f, $hidedetails, $hidedesc, $hideref) {
 		global $conf, $langs, $db;
 		
 		// Il faut recharger les lignes qui viennent juste d'être créées
@@ -241,7 +246,7 @@ class Ship2Bill {
 			$outputlangs = new Translate("",$conf);
 			$outputlangs->setDefaultLang($newlang);
 		}
-		$result=facture_pdf_create($db, $f, $f->modelpdf, $outputlangs);
+		$result=facture_pdf_create($db, $f, $f->modelpdf, $outputlangs, $hidedetails, $hidedesc, $hideref);
 		
 		if($result > 0) {
 			$objectref = dol_sanitizeFileName($f->ref);
