@@ -2,9 +2,10 @@
 
 class Ship2Bill {
 	
-	function generate_factures($TExpedition, $dateFact=0) {
+	function generate_factures($TExpedition, $dateFact=0) 
+	{
 		global $conf, $langs, $db, $user;
-		
+	
 		// Inclusion des classes nécessaires
 		dol_include_once('/commande/class/commande.class.php');
 		dol_include_once('/compta/facture/class/facture.class.php');
@@ -32,8 +33,15 @@ class Ship2Bill {
 		
 		$nbFacture = 0;
 		$TFiles = array();
+		
+		//unset les id expédition qui sont déjà liés à une facture
+		$this->_clearTExpedition($db, $TExpedition);
+		
 		// Pour chaque id client
-		foreach($TExpedition as $id_client => $Tid_exp){
+		foreach($TExpedition as $id_client => $Tid_exp)
+		{
+			if (empty($Tid_exp)) continue;
+			
 			// Création d'une facture regroupant plusieurs expéditions (par défaut)
 			if(empty($conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT)) {
 				$f = $this->facture_create($id_client, $dateFact);
@@ -83,6 +91,28 @@ class Ship2Bill {
 		if($conf->global->SHIP2BILL_GENERATE_GLOBAL_PDF) $this->generate_global_pdf($TFiles);
 
 		return $nbFacture;
+	}
+
+	private function _clearTExpedition(&$db, &$TExpedition)
+	{
+		foreach($TExpedition as $id_client => &$Tid_exp)
+		{
+			foreach($Tid_exp as $id_exp => $val) 
+			{
+				$sql = 'SELECT * FROM '.MAIN_DB_PREFIX.'element_element WHERE sourcetype="shipping" AND fk_source='.(int) $id_exp.' AND targettype="facture"';
+				
+				$resql = $db->query($sql);
+				if ($resql)
+				{
+					if ($db->num_rows($resql) > 0)
+					{
+						unset($Tid_exp[$id_exp]);
+					}
+				}
+				
+			}
+			
+		}
 	}
 
 	function facture_create($id_client, $dateFact) {
@@ -258,8 +288,11 @@ class Ship2Bill {
 		return '';
 	}
 
-	function generate_global_pdf($TFiles) {
+	function generate_global_pdf($TFiles) 
+	{
 		global $langs, $conf;
+		
+		dol_include_once('/core/lib/pdf.lib.php');
 		
         // Create empty PDF
         $pdf=pdf_getInstance();

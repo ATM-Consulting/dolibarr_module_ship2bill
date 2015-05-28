@@ -79,8 +79,8 @@ if(isset($_REQUEST['subCreateBill'])){
 		$nbFacture = $ship2bill->generate_factures($TExpedition, $dateFact);
 	
 		setEventMessage($langs->trans('InvoiceCreated', $nbFacture));
-		//header("Location: ".dol_buildpath('/compta/facture/list.php',2));
-		//exit;
+		header("Location: ".dol_buildpath('/ship2bill/ship2bill.php',1));
+		exit;
 	}
 }
 
