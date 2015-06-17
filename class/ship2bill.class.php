@@ -168,9 +168,9 @@ class Ship2Bill {
 			$commande = new Commande($db);
 			$commande->fetch($exp->origin_id);
 			
-			//$commande->fetchObjectLinked($exp->origin_id, 'commande', '', 'shipping');
+			$commande->fetchObjectLinked($exp->origin_id, 'commande', '', 'shipping');
 			
-			if(false || $commande->linkedObjects['shipping']>1) {
+			if(count($commande->linkedObjects['shipping'])>1) {
 				null;
 			}
 			else{
