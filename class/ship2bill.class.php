@@ -168,37 +168,46 @@ class Ship2Bill {
 			$commande = new Commande($db);
 			$commande->fetch($exp->origin_id);
 			
-			foreach($commande->lines as $line){
-
-				//Prise en compte des services et des lignes libre uniquement
-				if($line->fk_product_type == 1 || (empty($line->fk_product_type) && empty($line->fk_product))){
-					$f->addline(
-							$line->desc,
-							$line->price,
-							$line->qty,
-							$line->tva_tx,
-							0,0,
-							$line->fk_product,
-							$line->remise_percent,
-							$line->date_start,
-							$line->date_end,
-							0,0,
-							$line->fk_remise_except,
-							'HT',
-							0,
-							$line->fk_product_type,
-							-1,
-							$line->special_code,
-							'shipping',
-							$exp->id,
-							$line->fk_parent_line,
-							$line->fk_fournprice,
-							$line->pa_ht,
-							$line->libelle,
-							$line->array_option
-					);
-				}
+			//$commande->fetchObjectLinked($exp->origin_id, 'commande', '', 'shipping');
+			
+			if(false || $commande->linkedObjects['shipping']>1) {
+				null;
 			}
+			else{
+				foreach($commande->lines as $line){
+	
+					//Prise en compte des services et des lignes libre uniquement
+					if($line->fk_product_type == 1 || (empty($line->fk_product_type) && empty($line->fk_product))){
+						$f->addline(
+								$line->desc,
+								$line->price,
+								$line->qty,
+								$line->tva_tx,
+								0,0,
+								$line->fk_product,
+								$line->remise_percent,
+								$line->date_start,
+								$line->date_end,
+								0,0,
+								$line->fk_remise_except,
+								'HT',
+								0,
+								$line->fk_product_type,
+								-1,
+								$line->special_code,
+								'shipping',
+								$exp->id,
+								$line->fk_parent_line,
+								$line->fk_fournprice,
+								$line->pa_ht,
+								$line->libelle,
+								$line->array_option
+						);
+					}
+				}
+				
+			}
+			
 		}
 	}
 	
@@ -235,6 +244,14 @@ class Ship2Bill {
 			
 			$title.= ' - '.$title2;
 			
+			if($ord->socid>0) {
+				$soc = new Societe($db);
+				$soc->fetch($ord->socid);
+				
+				$title.= ' - '.$soc->name;
+				
+			}
+			//exit($title);
 			// Ajout du titre
 			if($conf->subtotal->enabled) {
 				if(method_exists($sub, 'addSubTotalLine')) $sub->addSubTotalLine($f, $title, 1);
