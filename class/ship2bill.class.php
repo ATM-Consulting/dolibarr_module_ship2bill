@@ -248,7 +248,7 @@ class Ship2Bill {
 				$soc = new Societe($db);
 				$soc->fetch($ord->socid);
 				
-				$title.= ' - '.$soc->name;
+				$title.= ' - '.$soc->name.' '.$soc->zip.' '.$soc->town;
 				
 			}
 			//exit($title);
