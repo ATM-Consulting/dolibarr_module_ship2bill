@@ -155,9 +155,9 @@ class Ship2Bill {
 				$orderline->fetch($l->fk_origin_line);
 				
 				if((float)DOL_VERSION <= 3.4)
-					$f->addline($f->id, $l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'shipping',$exp->id,0,$orderline->fk_fournprice,$orderline->pa_ht);
+					$f->addline($f->id, $l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'shipping',$l->line_id,0,$orderline->fk_fournprice,$orderline->pa_ht);
 				else
-					$f->addline($l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'shipping',$exp->id,0,$orderline->fk_fournprice,$orderline->pa_ht);
+					$f->addline($l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'shipping',$l->line_id,0,$orderline->fk_fournprice,$orderline->pa_ht);
 			}
 		}
 		
