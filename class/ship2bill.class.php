@@ -62,20 +62,20 @@ class Ship2Bill {
 					$f->update($user);
 					$nbFacture++;
 				}
-				
-				// Lien avec la facture
-				$f->add_object_linked('shipping', $exp->id);
+
 				// Ajout du titre
 				$this->facture_add_title($f, $exp, $sub);
 				// Ajout des lignes
 				$this->facture_add_line($f, $exp);
 				// Ajout du sous-total
 				$this->facture_add_subtotal($f, $sub);
-				
+				// Lien avec la facture
+				$f->add_object_linked('shipping', $exp->id);
+								
 				// Clôture de l'expédition
 				if($conf->global->SHIP2BILL_CLOSE_SHIPMENT) $exp->set_billed();
 			}
-			
+
 			// Ajout notes sur facture si une seule expé
 			if(count($Tid_exp) == 1) {
 				$f->update_note($exp->note_public, '_public');
@@ -168,12 +168,12 @@ class Ship2Bill {
 			$commande = new Commande($db);
 			$commande->fetch($exp->origin_id);
 			
-			$commande->fetchObjectLinked($exp->origin_id, 'commande', '', 'shipping');
-			
-			if(count($commande->linkedObjects['shipping'])>1) {
+			//pre($commande->linkedObjects,true);exit;
+			if($this->_expeditionBilled($commande)) {
 				null;
 			}
 			else{
+
 				foreach($commande->lines as $line){
 	
 					//Prise en compte des services et des lignes libre uniquement
@@ -209,6 +209,20 @@ class Ship2Bill {
 			}
 			
 		}
+	}
+	
+	//On regarde si une commande a déjà été facturée : si oui alors les services ont déjà été facturée
+	function _expeditionBilled(&$commande){
+		$commande->fetchObjectLinked($exp->origin_id, 'commande', '', 'shipping');
+
+		foreach($commande->linkedObjects['shipping'] as $expedition){
+			
+			$expedition->fetchObjectLinked($expedition->id,'shipping','','facture');
+			
+			if(count($expedition->linkedObjects['facture']) > 0) return true;
+		}
+		
+		return false;
 	}
 	
 	function facture_add_title (&$f, &$exp, &$sub) {
