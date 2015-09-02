@@ -153,6 +153,20 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">'
 print '</form>';
 print '</td></tr>';
 
+// Classified payed order automatically
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("ClassifiedPayedOrder").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="300">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_SHIP2BILL_CLASSFIED_PAYED_ORDER">';
+print $form->selectyesno("SHIP2BILL_CLASSFIED_PAYED_ORDER",$conf->global->SHIP2BILL_CLASSFIED_PAYED_ORDER,1);
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
 
 if($conf->global->SHIP2BILL_VALID_INVOICE && $conf->global->STOCK_CALCULATE_ON_BILL) {
 	// Define warehouse to use if stock movement is after invoice validation

@@ -116,6 +116,35 @@ class InterfaceShip2billWorkflow
         // Put here code you want to execute when a Dolibarr business events occurs.
         // Data and type of action are stored into $object and $action
         // Users
+        
+        global $db,$conf;
+
+		dol_include_once('/commande/class/commande.class.php');
+		dol_include_once('/compta/facture/class/facture.class.php');
+		dol_include_once('/expeiditon/class/expedition.class.php');
+		
+        /*
+		 *  FACTURE
+		 */
+        if ($action == 'BILL_PAYED' && $conf->global->SHIP2BILL_CLASSFIED_PAYED_ORDER)
+        {
+        	$object->fetchObjectLinked();
+			
+			//pre($object->linkedObjects,true);exit;
+			
+			if(count($object->linkedObjects['shipping'])> 0){
+				foreach ($object->linkedObjects['shipping'] as $expedition) {
+					$expedition->fetchObjectLinked();
+					//pre($expedition->linkedObjects,true);exit;
+					if(count($expedition->linkedObjects['commande'])){
+						foreach ($expedition->linkedObjects['commande'] as $commande) {
+							$commande->classifyBilled();
+							$object->add_object_linked('commande',$commande->id);
+						}
+					}
+				}
+			}
+		}
 
         return 0;
     }
