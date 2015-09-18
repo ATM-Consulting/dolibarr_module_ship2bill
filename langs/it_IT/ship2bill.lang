@@ -1,0 +1,13 @@
+Module104140Name = Expedition to Bill
+Module104140Desc = Permette di creare fatture da diverse spedizioni
+
+Ship2BillMenu=Spedizioni Fatturabili
+ShipmentToBill=Shipments to bill
+CreateInvoiceButton=Crea fatture
+NoShipmentSelected=Nessuna spedizione creata
+InvoiceCreated=%s Fattura(e) creata
+AddShipmentAsTitles=Aggiungi informazioni spedizione come titolo
+AddShipmentSubtotal=Aggiungi sub-totale per ogni spedizione
+CloseShipment=Chiudi automaticamente la spedizione dopo la creazione della fattura
+
+Ship2BillSetup=Expedition to Bill - Impostazioni del Modulo
