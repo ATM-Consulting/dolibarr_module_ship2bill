@@ -178,6 +178,9 @@ class Ship2Bill {
 	
 					//Prise en compte des services et des lignes libre uniquement
 					if($line->fk_product_type == 1 || (empty($line->fk_product_type) && empty($line->fk_product))){
+						
+						//echo $exp->id;exit;
+						
 						$f->addline(
 								$line->desc,
 								$line->price,
@@ -195,8 +198,8 @@ class Ship2Bill {
 								$line->fk_product_type,
 								-1,
 								$line->special_code,
-								'shipping',
-								$exp->id,
+								'commande',
+								$line->id,
 								$line->fk_parent_line,
 								$line->fk_fournprice,
 								$line->pa_ht,
