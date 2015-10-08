@@ -268,8 +268,9 @@ if ($resql)
 		print "<td>";
 		$commande = new Commande($db);
 		//$commande->fetch($shipment->origin_id);
-		$commande->id = $objp->cdeid;
-		$commande->ref = $objp->cderef;
+		/*$commande->id = $objp->cdeid;
+		$commande->ref = $objp->cderef;*/
+		$commande->fetch($objp->cdeid); // Plus propre
 		print $commande->getNomUrl(1);
 		print "</td>\n";
 		
@@ -283,7 +284,7 @@ if ($resql)
 		/*$companystatic->id=$objp->socid;
 		$companystatic->ref=$objp->socname;
 		$companystatic->nom=$objp->socname;*/
-		$companystatic->fetch($objp->socid);
+		$companystatic->fetch($objp->socid); // Plus propre
 		print $companystatic->getNomUrl(1);
 		print '</td>';
 		// Date delivery  planed
