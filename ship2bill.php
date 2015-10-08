@@ -280,9 +280,10 @@ if ($resql)
 		
 		// Third party
 		print '<td>';
-		$companystatic->id=$objp->socid;
+		/*$companystatic->id=$objp->socid;
 		$companystatic->ref=$objp->socname;
-		$companystatic->nom=$objp->socname;
+		$companystatic->nom=$objp->socname;*/
+		$companystatic->fetch($objp->socid);
 		print $companystatic->getNomUrl(1);
 		print '</td>';
 		// Date delivery  planed
