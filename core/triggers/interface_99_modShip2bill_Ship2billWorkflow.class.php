@@ -126,8 +126,39 @@ class InterfaceShip2billWorkflow
         /*
 		 *  FACTURE
 		 */
-        if ($action == 'BILL_PAYED' && $conf->global->SHIP2BILL_CLASSFIED_PAYED_ORDER)
+        if ($action == 'BILL_VALIDATE' && $conf->global->SHIP2BILL_CLASSYFIED_PAYED_ORDER)
         {
+			dol_include_once('/commande/class/commande.class.php');
+			dol_include_once('/expedition/class/expedition.class.php');
+			dol_include_once('/comm/class/propal.class.php');
+
+			$object->fetchObjectLinked(0,'shipping');
+
+			if(!empty($object->linkedObjects['shipping'])){
+				foreach($object->linkedObjects['shipping'] as $expedition) {
+					// Clôturer l'expédition
+					$expedition->set_billed();
+					
+					// Classer facturée la commande si déjà au statut "Délivrée"
+					// Ainsi que la proposition rattachée
+					$expedition->fetchObjectLinked(0,'commande');
+					if(!empty($expedition->linkedObjects['commande'][0])){
+						$commande = $expedition->linkedObjects['commande'][0];
+						// Lien commande / facture
+						$object->add_object_linked('commande',$commande->id);
+						if($commande->statut == 3) {
+							$commande->classifyBilled();
+							$commande->fetchObjectLinked(0,'propal');
+							if(!empty($commande->linkedObjects['propal'][0])){
+								$propale = $commande->linkedObjects['propal'][0];
+								// Lien commande / facture
+								$object->add_object_linked('propal',$propale->id);
+								$propale->classifyBilled();
+							}
+						}
+					}
+				}
+			}
         	$object->fetchObjectLinked();
 			
 			//pre($object->linkedObjects,true);exit;
