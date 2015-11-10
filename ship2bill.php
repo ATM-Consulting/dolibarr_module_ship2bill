@@ -311,7 +311,7 @@ if ($resql)
 		}
 
 		print '<td align="right">'.$shipment->getLibStatut(5).'</td>';
-		print '<td align="right">'.price($shipment->total_ht).'</td>';
+		print '<td align="right" class="totalShipment">'.price($shipment->total_ht).'</td>';
 		
 		// Sélection expé à facturer
 		print '<td align="center">';
@@ -336,11 +336,41 @@ if ($resql)
 			print '<td align="left">'.$langs->trans("TotalHTforthispage").'</td>';
 		}
 		
-		print '<td colspan="'.$colspan.'" align="right"">'.price($total).'<td>&nbsp;</td>';
+		print '<td colspan="'.$colspan.'" align="right">'.price($total).'<td align="center"><span id="totalExpeditionChecked"></span></td>';
 		print '</tr>';
 	}
 
 	print "</table>";
+	
+	echo "
+		<script type='text/javascript'>
+			$(function() {
+					
+				function calculTotalExpeditionChecked()
+				{
+					var totalPriceChecked = 0;
+					$('form[name=formAfficheListe] tr input.checkforgen:checked').each(function(index) {
+						var price = $(this).parent().parent().children('.totalShipment').text();
+						price = parseFloat(price.replace(',', '.'));
+						
+						totalPriceChecked = totalPriceChecked + price;
+					});
+					
+					if (typeof totalPriceChecked.toFixed == 'function') totalPriceChecked = totalPriceChecked.toFixed(2);
+					totalPriceChecked = String(totalPriceChecked).replace('.', ',');
+					
+					$('#totalExpeditionChecked').text(totalPriceChecked);
+				}
+				
+				calculTotalExpeditionChecked();
+				
+				$('form[name=formAfficheListe] tr input.checkforgen').unbind().click(function() {
+					calculTotalExpeditionChecked();
+				});
+			})
+		</script>
+	";
+	
 	if($num > 0 && $user->rights->facture->creer) {
 		$f = new Form($db);
 		print '<br><div style="text-align: right;">';
