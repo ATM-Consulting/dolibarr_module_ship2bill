@@ -315,7 +315,7 @@ if ($resql)
 		
 		// Sélection expé à facturer
 		print '<td align="center">';
-		print '<input type="checkbox" checked="checked" name="'.$checkbox.'" class="checkforgen" />';
+		print '<input type="checkbox" checked="checked" name="'.$checkbox.'" class="checkforgen" price="'.price2num($shipment->total_ht).'" />';
 		print "</td>\n";
 		
 		print "</tr>\n";
@@ -350,16 +350,14 @@ if ($resql)
 				{
 					var totalPriceChecked = 0;
 					$('form[name=formAfficheListe] tr input.checkforgen:checked').each(function(index) {
-						var price = $(this).parent().parent().children('.totalShipment').text();
-						price = parseFloat(price.replace(',', '.'));
-						
-						totalPriceChecked = totalPriceChecked + price;
+						var price = $(this).attr('price');
+						totalPriceChecked += parseFloat(price);
 					});
 					
 					if (typeof totalPriceChecked.toFixed == 'function') totalPriceChecked = totalPriceChecked.toFixed(2);
 					totalPriceChecked = String(totalPriceChecked).replace('.', ',');
 					
-					$('#totalExpeditionChecked').text(totalPriceChecked);
+					$('#totalExpeditionChecked').html(totalPriceChecked);
 				}
 				
 				calculTotalExpeditionChecked();
