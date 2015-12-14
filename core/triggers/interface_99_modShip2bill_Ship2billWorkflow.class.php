@@ -159,22 +159,6 @@ class InterfaceShip2billWorkflow
 					}
 				}
 			}
-        	$object->fetchObjectLinked();
-			
-			//pre($object->linkedObjects,true);exit;
-			
-			if(count($object->linkedObjects['shipping'])> 0){
-				foreach ($object->linkedObjects['shipping'] as $expedition) {
-					$expedition->fetchObjectLinked();
-					//pre($expedition->linkedObjects,true);exit;
-					if(count($expedition->linkedObjects['commande'])){
-						foreach ($expedition->linkedObjects['commande'] as $commande) {
-							$commande->classifyBilled();
-							$object->add_object_linked('commande',$commande->id);
-						}
-					}
-				}
-			}
 		}
 
         return 0;
