@@ -138,9 +138,28 @@ class Ship2Bill {
 		$f->mode_reglement_id = $f->thirdparty->mode_reglement_id;
 		$f->modelpdf = !empty($conf->global->SHIP2BILL_GENERATE_INVOICE_PDF) ? $conf->global->SHIP2BILL_GENERATE_INVOICE_PDF : 'crabe';
 		$f->statut = 0;
+		
+		//Récupération du compte bancaire si mode de règlement = VIR
+		if (!empty($conf->global->SHIP2BILL_USE_DEFAULT_BANK_IN_INVOICE_MODULE) && !empty($conf->global->FACTURE_RIB_NUMBER) && $this->getModeReglementCode($db , $f->mode_reglement_id) == 'VIR')
+		{
+			$f->fk_account = $conf->global->FACTURE_RIB_NUMBER;
+		}
+		
 		$f->create($user);
 		
 		return $f;
+	}
+
+	function getModeReglementCode(&$db, $mode_reglement_id)
+	{
+		if ($mode_reglement_id <= 0) return '';
+		
+		$code = '';
+		$sql = 'SELECT code FROM '.MAIN_DB_PREFIX.'c_paiement WHERE id = '.(int) $mode_reglement_id;
+		$resql = $db->query($sql);
+		if ($resql && ($row = $db->fetch_object($resql))) $code = $row->code;
+		
+		return $code;
 	}
 	
 	function facture_add_line(&$f, &$exp) {
