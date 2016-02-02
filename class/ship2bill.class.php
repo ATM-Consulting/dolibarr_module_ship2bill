@@ -78,7 +78,7 @@ class Ship2Bill {
 
 			// Ajout notes sur facture si une seule expé
 			if(count($Tid_exp) == 1) {
-				$f->update_note($exp->note_public, '_public');
+				if (!empty($exp->note_public)) $f->update_note($exp->note_public, '_public');
 			}
 				
 			// Validation de la facture
