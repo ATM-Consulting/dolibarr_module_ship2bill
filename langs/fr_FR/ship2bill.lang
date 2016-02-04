@@ -18,6 +18,7 @@ GlobalGeneratedFiles=Fichiers factures générés
 ShipmentBilled=Expéditions facturées
 GetServicesFromOrder=Ajouter à la facture les services provenant de la commande originale
 ClassifiedPayedOrder=Classer facturée la commande d'origine (si délivrée) lorsque la facture de l'expédition est validée
+DisplayCustomerInTitle=Afficher le nom du client dans les titres
 
 
 Ship2BillSetup=Configuration du module "Expéditions facturables"
