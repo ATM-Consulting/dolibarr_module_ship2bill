@@ -256,9 +256,10 @@ class Ship2Bill {
 			$exp->fetchObjectLinked('','commande');
 			
 			// Récupération des infos de la commande pour le titre
-			if (! empty($exp->linkedObjectsIds['commande'][0])) {
+			if (! empty($exp->linkedObjectsIds['commande'])) {
+				$id_ord = array_pop($exp->linkedObjectsIds['commande']);
 				$ord = new Commande($db);
-				$ord->fetch($exp->linkedObjectsIds['commande'][0]);
+				$ord->fetch($id_ord);
 				$title.= $langs->transnoentities('Order').' '.$ord->ref;
 				if(!empty($ord->ref_client)) $title.= ' / '.$ord->ref_client;
 				if(!empty($ord->date_commande)) $title.= ' ('.dol_print_date($ord->date_commande,'day').')';
@@ -270,9 +271,10 @@ class Ship2Bill {
 				$exp->fetchObjectLinked('','','','delivery');
 				
 				// Récupération des infos du BL pour le titre, sinon de l'expédition
-				if (! empty($exp->linkedObjectsIds['delivery'][0])) {
+				if (! empty($exp->linkedObjectsIds['delivery'])) {
+					$id_liv = array_pop($exp->linkedObjectsIds['delivery']);
 					$liv = new Livraison($db);
-					$liv->fetch($exp->linkedObjectsIds['delivery'][0]);
+					$liv->fetch($id_liv);
 					$title2 = $langs->transnoentities('Delivery').' '.$liv->ref;
 					if(!empty($liv->date_delivery)) $title2.= ' ('.dol_print_date($liv->date_delivery,'day').')';
 				}
@@ -280,12 +282,11 @@ class Ship2Bill {
 			
 			$title.= ' - '.$title2;
 			
-			if($ord->socid>0) {
+			if($ord->socid > 0 && $conf->global->SHIP2BILL_DISPLAY_ORDERCUSTOMER_IN_TITLE) {
 				$soc = new Societe($db);
 				$soc->fetch($ord->socid);
 				
 				$title.= ' - '.$soc->name.' '.$soc->zip.' '.$soc->town;
-				
 			}
 			//exit($title);
 			// Ajout du titre
