@@ -142,15 +142,15 @@ class InterfaceShip2billWorkflow
 					// Classer facturée la commande si déjà au statut "Délivrée"
 					// Ainsi que la proposition rattachée
 					$expedition->fetchObjectLinked(0,'commande');
-					if(!empty($expedition->linkedObjects['commande'][0])){
-						$commande = $expedition->linkedObjects['commande'][0];
+					if(!empty($expedition->linkedObjects['commande'])){
+						$commande = array_pop($expedition->linkedObjects['commande']);
 						// Lien commande / facture
 						$object->add_object_linked('commande',$commande->id);
 						if($commande->statut == 3) {
 							$commande->classifyBilled();
 							$commande->fetchObjectLinked(0,'propal');
-							if(!empty($commande->linkedObjects['propal'][0])){
-								$propale = $commande->linkedObjects['propal'][0];
+							if(!empty($commande->linkedObjects['propal'])){
+								$propale = array_pop($commande->linkedObjects['propal']);
 								// Lien commande / facture
 								$object->add_object_linked('propal',$propale->id);
 								$propale->classifyBilled();
