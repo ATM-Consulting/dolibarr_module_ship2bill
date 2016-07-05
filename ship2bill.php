@@ -252,6 +252,7 @@ if ($resql)
 	
 	$var=True;
 	$total = 0;
+	$checked = (empty($conf->global->SHIP2BILL_CHECKED_BY_DEFAULT)) ? '' : ' checked="checked"';
 
 	while ($i < min($num,$limit))
 	{
@@ -315,7 +316,7 @@ if ($resql)
 		
 		// Sélection expé à facturer
 		print '<td align="center">';
-		print '<input type="checkbox" checked="checked" name="'.$checkbox.'" class="checkforgen" price="'.price2num($shipment->total_ht).'" />';
+		print '<input type="checkbox"'.$checked.' name="'.$checkbox.'" class="checkforgen" price="'.price2num($shipment->total_ht).'" />';
 		print "</td>\n";
 		
 		print "</tr>\n";
