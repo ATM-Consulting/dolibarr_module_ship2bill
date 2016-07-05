@@ -315,7 +315,7 @@ if ($resql)
 		
 		// Sélection expé à facturer
 		print '<td align="center">';
-		print '<input type="checkbox" checked="checked" name="'.$checkbox.'" class="checkforgen" price="'.price2num($shipment->total_ht).'" />';
+		print '<input type="checkbox" name="'.$checkbox.'" class="checkforgen" price="'.price2num($shipment->total_ht).'" />';
 		print "</td>\n";
 		
 		print "</tr>\n";
