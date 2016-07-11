@@ -119,13 +119,9 @@ class InterfaceShip2billWorkflow
         
         global $db,$conf;
 
-		dol_include_once('/commande/class/commande.class.php');
-		dol_include_once('/compta/facture/class/facture.class.php');
-		dol_include_once('/expeiditon/class/expedition.class.php');
-		
         /*
-		 *  FACTURE
-		 */
+	 *  FACTURE
+	 */
         if ($action == 'BILL_VALIDATE' && $conf->global->SHIP2BILL_CLASSYFIED_PAYED_ORDER)
         {
 			dol_include_once('/commande/class/commande.class.php');
