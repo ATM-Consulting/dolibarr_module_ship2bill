@@ -181,7 +181,7 @@ class Ship2Bill {
 		}
 		
 		//Récupération des services de la commande si SHIP2BILL_GET_SERVICES_FROM_ORDER
-		if($conf->global->SHIP2BILL_GET_SERVICES_FROM_ORDER && (float)DOL_VERSION >= 3.5){
+		if($conf->global->SHIP2BILL_GET_SERVICES_FROM_ORDER && (float)DOL_VERSION >= 3.5 && empty($conf->global->STOCK_SUPPORTS_SERVICES)){
 			dol_include_once('/commande/class/commande.class.php');
 			
 			$commande = new Commande($db);
