@@ -23,3 +23,4 @@ CheckedByDefault=Pré-cocher les expéditions dans la liste
 
 Ship2BillSetup=Configuration du module "Expéditions facturables"
 UseDefaultBankAccountInInvoiceModule=Utiliser par défaut le compte bancaire renseigné dans la configuration du module facture si paiement par virement
+TotalHTShippingAndTotalHTBillCanBeDifferent=Attention, selon la configuration actuelle, le total HT de l'expédition et celui de la facture finale peuvent différer

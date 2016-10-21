@@ -196,7 +196,7 @@ if ($resql)
 	if ($search_societe) $param.= "&amp;search_societe=".$search_societe;
 	if ($search_status)  $param.= "&amp;search_status=".$search_status;
 
-	print_barre_liste($langs->trans('ShipmentToBill'), $page, "ship2bill.php",$param,$sortfield,$sortorder,'',$num);
+	print_barre_liste($langs->trans('ShipmentToBill').(!empty($conf->global->SHIP2BILL_GET_SERVICES_FROM_ORDER) ? ' ('.$langs->trans('TotalHTShippingAndTotalHTBillCanBeDifferent').')' : ''), $page, "ship2bill.php",$param,$sortfield,$sortorder,'',$num);
 
 	print '<form name="formAfficheListe" method="POST" action="ship2bill.php">';
 
