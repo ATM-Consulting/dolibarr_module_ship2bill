@@ -18,6 +18,7 @@ class Ship2Bill {
 		// Utilisation du module sous-total si activé
 		if($conf->subtotal->enabled) {
 			dol_include_once('/subtotal/class/actions_subtotal.class.php');
+			dol_include_once('/subtotal/class/subtotal.class.php');
 			$langs->load("subtotal@subtotal");
 			$sub = new ActionsSubtotal();
 		}
@@ -173,10 +174,13 @@ class Ship2Bill {
 				$orderline = new OrderLine($db);
 				$orderline->fetch($l->fk_origin_line);
 				
+				// Si ligne du module sous-total et que sa description est vide alors il faut attribuer le label (le label ne semble pas être utiliser pour l'affichage car deprécié)
+				if (!empty($conf->subtotal->enabled) && $orderline->special_code == TSubtotal::$module_number && empty($l->description)) $l->description = $l->label;
+				
 				if((float)DOL_VERSION <= 3.4)
 					$f->addline($f->id, $l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'shipping',$l->line_id,0,$orderline->fk_fournprice,$orderline->pa_ht,$orderline->label);
 				else
-					$f->addline($l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'shipping',$l->line_id,0,$orderline->fk_fournprice,$orderline->pa_ht,$orderline->label);
+					$f->addline($l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,$orderline->product_type,-1,$orderline->special_code,'shipping',$l->line_id,0,$orderline->fk_fournprice,$orderline->pa_ht,$orderline->label);
 			}
 		}
 		
