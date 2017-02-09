@@ -94,6 +94,69 @@ class Ship2Bill {
 		return $nbFacture;
 	}
 
+	function removeAllPDFFile() {
+		global $conf, $langs;
+		$dir = $conf->ship2bill->multidir_output[$conf->entity].'/';
+		
+		$TFile = dol_dir_list( $dir );
+			
+		$inputfile = array();
+		foreach($TFile as $file) {
+	
+			$ext = pathinfo($file['fullname'], PATHINFO_EXTENSION);
+			if($ext == 'pdf') {
+				$ret = dol_delete_file($file['fullname'], 0, 0, 0);
+			}
+		}
+	
+	
+	}
+	
+	function zipFiles() {
+		global $conf, $langs;
+	
+		if (defined('ODTPHP_PATHTOPCLZIP'))
+		{
+	
+			include_once ODTPHP_PATHTOPCLZIP.'/pclzip.lib.php';
+	
+			$dir = $conf->ship2bill->multidir_output[$conf->entity].'/';
+				
+			$file = 'archive_'.date('Ymdhis').'.zip';
+				
+			if(file_exists($file))	unlink($file);
+				
+			$archive = new PclZip($dir.$file);
+	
+			$TFile = dol_dir_list( $dir );
+				
+			$inputfile = array();
+			foreach($TFile as $file) {
+					
+				$ext = pathinfo($file['fullname'], PATHINFO_EXTENSION);
+				if($ext == 'pdf') {
+					$inputfile[] = $file['fullname'];
+				}
+			}
+			if(count($inputfile)==0){
+				setEventMessage($langs->trans('NoFileInDirectory'),'warnings');
+				return;
+			}
+	
+	
+			$archive->add($inputfile, PCLZIP_OPT_REMOVE_PATH, $dir);
+	
+			setEventMessage($langs->trans('FilesArchived'));
+	
+			$this->removeAllPDFFile();
+		}
+		else {
+	
+			print "ERREUR : Librairie Zip non trouvée";
+		}
+	
+	}
+	
 	private function _clearTExpedition(&$db, &$TExpedition)
 	{
 		foreach($TExpedition as $id_client => &$Tid_exp)

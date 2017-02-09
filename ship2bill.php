@@ -29,6 +29,7 @@ dol_include_once('/expedition/class/expedition.class.php');
 dol_include_once('/ship2bill/class/ship2bill.class.php');
 dol_include_once('/core/class/html.formfile.class.php');
 dol_include_once('/core/class/html.form.class.php');
+dol_include_once('/core/lib/files.lib.php');
 
 $langs->load("sendings");
 $langs->load("deliveries");
@@ -64,6 +65,11 @@ if (! $sortfield) $sortfield="e.ref";
 if (! $sortorder) $sortorder="DESC";
 $limit = $conf->liste_limit;
 
+
+$confirm = GETPOST('confirm');
+$formconfirm = '';
+$form=new Form($db);
+
 if(isset($_REQUEST['subCreateBill'])){
 	$TExpedition = $_REQUEST['TExpedition'];
 	$dateFact = GETPOST('dtfact');
@@ -98,6 +104,35 @@ if ($action == 'remove_file')
 	else setEventMessage($langs->trans("ErrorFailToDeleteFile", GETPOST('urlfile')), 'errors');
 	$action='';
 }
+else if($action=='delete_all_pdf_files') { 
+	$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('DeleteAllFiles'), $langs->trans('ConfirmDeleteAllFiles'), 'confirm_delete_all_pdf_files', '', 'no', 1);
+		
+		
+}			
+else if($action=='confirm_delete_all_pdf_files' && $confirm == 'yes') {
+		
+	$order = new Ship2Bill($db);
+	$order->removeAllPDFFile();
+		
+	setEventMessage($langs->trans("FilesWereRemoved"));
+
+
+}
+
+else if($action=='archive_files') {
+	
+	$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('ArchiveFiles'), $langs->trans('ConfirmArchiveFiles'), 'confirm_archive_files', '', 'no', 1);
+		
+}
+	
+else if($action=='confirm_archive_files' && $confirm == 'yes') {
+		
+	$order = new Ship2Bill($db);
+	$order->zipFiles();
+			
+}
+		
+
 
 // Do we click on purge search criteria ?
 if (GETPOST("button_removefilter_x"))
@@ -120,6 +155,8 @@ $shipment=new Expedition($db);
 
 $helpurl='EN:Module_Shipments|FR:Module_Exp&eacute;ditions|ES:M&oacute;dulo_Expediciones';
 llxHeader('',$langs->trans('ShipmentToBill'),$helpurl);
+
+echo $formconfirm;
 ?>
 <script type="text/javascript">
 $(document).ready(function() {
@@ -396,6 +433,11 @@ if ($resql)
 		print '<br><br>';
 		$formfile = new FormFile($db);
 		$formfile->show_documents('ship2bill','',$diroutputpdf,$urlsource,false,true,'',1,1,0,48,1,$param,$langs->trans("GlobalGeneratedFiles"));
+	
+		echo '<div class="tabsAction">';
+		echo '<a class="butAction" href="?action=archive_files">'.$langs->trans('ArchiveFiles').'</a>';
+		echo '<a class="butAction" href="?action=delete_all_pdf_files">'.$langs->trans('DeleteAllFiles').'</a>';
+		echo '</div>';
 	}
 
 	$db->free($resql);
