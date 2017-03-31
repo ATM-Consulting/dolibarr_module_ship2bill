@@ -63,6 +63,9 @@ class Ship2Bill {
 					$f->update($user);
 					$nbFacture++;
 				}
+				
+				// Ajout pour éviter déclenchement d'autres modules, par exemple ecotaxdee
+				$f->context = array('origin'=>'shipping', 'origin_id'=>$id_exp);
 
 				// Ajout du titre
 				$this->facture_add_title($f, $exp, $sub);
