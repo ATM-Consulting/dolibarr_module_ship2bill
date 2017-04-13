@@ -23,3 +23,5 @@ CheckedByDefault=Pré-cocher les expéditions dans la liste
 
 Ship2BillSetup=Configuration du module "Expéditions facturables"
 UseDefaultBankAccountInInvoiceModule=Utiliser par défaut le compte bancaire renseigné dans la configuration du module facture si paiement par virement
+
+GenerationInProgress=Génération des factures en cours...

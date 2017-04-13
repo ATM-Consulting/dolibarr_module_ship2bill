@@ -19,3 +19,5 @@ ShipmentBilled=Billed shipments
 GetServicesFromOrder=Get services from order shipping origin and add in generated invoice
 
 Ship2BillSetup=Shipment to invoice module setup
+
+GenerationInProgress=Generation in progress...
