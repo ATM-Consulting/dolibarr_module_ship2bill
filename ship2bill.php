@@ -28,6 +28,7 @@ dol_include_once('/expedition/class/expedition.class.php');
 dol_include_once('/ship2bill/class/ship2bill.class.php');
 dol_include_once('/core/class/html.formfile.class.php');
 dol_include_once('/core/class/html.form.class.php');
+dol_include_once('/core/lib/files.lib.php');
 
 set_time_limit(0);
 ini_set('memory_limit','2048M');
@@ -66,6 +67,11 @@ if (! $sortfield) $sortfield="e.ref";
 if (! $sortorder) $sortorder="DESC";
 $limit = $conf->liste_limit;
 
+
+$confirm = GETPOST('confirm');
+$formconfirm = '';
+$form=new Form($db);
+
 if(isset($_REQUEST['subCreateBill'])){
 	$TExpedition = $_REQUEST['TExpedition'];
 	$dateFact = GETPOST('dtfact');
@@ -102,6 +108,35 @@ if ($action == 'remove_file')
 	else setEventMessage($langs->trans("ErrorFailToDeleteFile", GETPOST('urlfile')), 'errors');
 	$action='';
 }
+else if($action=='delete_all_pdf_files') { 
+	$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('DeleteAllFiles'), $langs->trans('ConfirmDeleteAllFiles'), 'confirm_delete_all_pdf_files', '', 'no', 1);
+		
+		
+}			
+else if($action=='confirm_delete_all_pdf_files' && $confirm == 'yes') {
+		
+	$order = new Ship2Bill($db);
+	$order->removeAllPDFFile();
+		
+	setEventMessage($langs->trans("FilesWereRemoved"));
+
+
+}
+
+else if($action=='archive_files') {
+	
+	$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('ArchiveFiles'), $langs->trans('ConfirmArchiveFiles'), 'confirm_archive_files', '', 'no', 1);
+		
+}
+	
+else if($action=='confirm_archive_files' && $confirm == 'yes') {
+		
+	$order = new Ship2Bill($db);
+	$order->zipFiles();
+			
+}
+		
+
 
 // Do we click on purge search criteria ?
 if (GETPOST("button_removefilter_x"))
@@ -124,6 +159,8 @@ $shipment=new Expedition($db);
 
 $helpurl='EN:Module_Shipments|FR:Module_Exp&eacute;ditions|ES:M&oacute;dulo_Expediciones';
 llxHeader('',$langs->trans('ShipmentToBill'),$helpurl);
+
+echo $formconfirm;
 ?>
 <script type="text/javascript">
 $(document).ready(function() {
@@ -146,10 +183,22 @@ if (!$user->rights->societe->client->voir && !$socid)	// Internal user with no p
 }
 $sql.= ")
 		LEFT JOIN ".MAIN_DB_PREFIX."societe as s ON s.rowid = e.fk_soc
-		LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee3 ON (e.rowid = ee3.fk_target AND ee3.sourcetype = 'commande' AND ee3.targettype = 'shipping')
-		LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee2 ON (e.rowid = ee2.fk_source AND ee2.sourcetype = 'shipping' AND ee2.targettype = 'facture')
-		LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee ON (e.rowid = ee.fk_source AND ee.sourcetype = 'shipping' AND ee.targettype = 'delivery')
-		LEFT JOIN ".MAIN_DB_PREFIX."livraison as l ON l.rowid = ee.fk_target 
+		LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee3
+ 			ON
+ 		((e.rowid = ee3.fk_target AND ee3.sourcetype = 'commande' AND ee3.targettype = 'shipping')
+ 			OR
+ 		(e.rowid = ee3.fk_source AND ee3.targettype = 'commande' AND ee3.sourcetype = 'shipping'))
+		LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee2
+ 			ON
+ 		((e.rowid = ee2.fk_source AND ee2.sourcetype = 'shipping' AND ee2.targettype = 'facture')
+			OR
+		(e.rowid = ee2.fk_target AND ee2.targettype = 'shipping' AND ee2.sourcetype = 'facture'))
+		LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee
+ 			ON
+ 		((e.rowid = ee.fk_source AND ee.sourcetype = 'shipping' AND ee.targettype = 'delivery')
+ 			OR
+ 		(e.rowid = ee.fk_target AND ee.targettype = 'shipping' AND ee.sourcetype = 'delivery'))
+		LEFT JOIN ".MAIN_DB_PREFIX."livraison as l ON l.rowid = ee.fk_target
 		LEFT JOIN ".MAIN_DB_PREFIX."facture as f ON f.rowid = ee2.fk_target
 		LEFT JOIN ".MAIN_DB_PREFIX."commande as c ON c.rowid = ee3.fk_source
 		WHERE e.entity = ".$conf->entity."
@@ -188,10 +237,10 @@ if ($resql)
 	if ($search_societe) $param.= "&amp;search_societe=".$search_societe;
 	if ($search_status)  $param.= "&amp;search_status=".$search_status;
 
-	print_barre_liste($langs->trans('ShipmentToBill'), $page, "ship2bill.php",$param,$sortfield,$sortorder,'',$num);
-	
+	print_barre_liste($langs->trans('ShipmentToBill').(!empty($conf->global->SHIP2BILL_GET_SERVICES_FROM_ORDER) ? ' ('.$langs->trans('TotalHTShippingAndTotalHTBillCanBeDifferent').')' : ''), $page, "ship2bill.php",$param,$sortfield,$sortorder,'',$num);
+
 	print '<form name="formAfficheListe" id="formShip2Bill" method="POST" action="ship2bill.php">';
-	
+
 	$i = 0;
 	print '<table class="noborder" width="100%">';
 
@@ -209,7 +258,7 @@ if ($resql)
 	print_liste_field_titre($langs->trans("AmountHT"),"ship2bill.php","","",$param,'align="right"',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("ShipmentToBill"),"shiptobill.php","","",$param, 'align="center"',$sortfield,$sortorder);
 	print "</tr>\n";
-	
+
 	// Lignes des champs de filtre
 	print '<tr class="liste_titre">';
 	print '<td class="liste_titre">';
@@ -232,7 +281,7 @@ if ($resql)
 		print '</td>';
 		print '<td class="liste_titre">&nbsp;</td>';
 	}
-	
+
 	//print '<td class="liste_titre" align="right">';
 	print '<td class="liste_titre" align="right">';
 	$TStatus[0] = $langs->trans('StatusSendingDraftShort');
@@ -251,9 +300,9 @@ if ($resql)
 	print '<td class="liste_titre" align="center">';
 	print '<a href="#" id="checkall">'.$langs->trans("All").'</a> / <a href="#" id="checknone">'.$langs->trans("None").'</a>';
 	print '</td>';
-	
+
 	print "</tr>\n";
-	
+
 	$var=True;
 	$total = 0;
 	$checked = (empty($conf->global->SHIP2BILL_CHECKED_BY_DEFAULT)) ? '' : ' checked="checked"';
@@ -278,12 +327,12 @@ if ($resql)
 		$commande->fetch($objp->cdeid); // Plus propre
 		print $commande->getNomUrl(1);
 		print "</td>\n";
-		
+
 		// Order ref client
 		print "<td>";
 		print $objp->ref_client;
 		print "</td>\n";
-		
+
 		// Third party
 		print '<td>';
 		/*$companystatic->id=$objp->socid;
@@ -303,12 +352,12 @@ if ($resql)
 		if($conf->livraison_bon->enabled) {
 			$shipment->fetchObjectLinked($shipment->id,$shipment->element);
 			$receiving=(! empty($shipment->linkedObjects['delivery'][0])?$shipment->linkedObjects['delivery'][0]:'');
-			
+
 			// Ref
 			print '<td>';
 			print !empty($receiving) ? $receiving->getNomUrl($db) : '';
 			print '</td>';
-			
+
 			// Date real
 			print "<td align=\"center\">";
 			print dol_print_date($db->jdate($objp->date_livraison),"day");
@@ -317,14 +366,14 @@ if ($resql)
 
 		print '<td align="right">'.$shipment->getLibStatut(5).'</td>';
 		print '<td align="right" class="totalShipment">'.price($shipment->total_ht).'</td>';
-		
+
 		// Sélection expé à facturer
 		print '<td align="center">';
 		print '<input type="checkbox"'.$checked.' name="'.$checkbox.'" class="checkforgen" price="'.price2num($shipment->total_ht).'" />';
 		print "</td>\n";
-		
+
 		print "</tr>\n";
-		
+
 		$total += $shipment->total_ht;
 
 		$i++;
@@ -340,17 +389,17 @@ if ($resql)
 		{
 			print '<td align="left">'.$langs->trans("TotalHTforthispage").'</td>';
 		}
-		
+
 		print '<td colspan="'.$colspan.'" align="right">'.price($total).'<td align="center"><span id="totalExpeditionChecked"></span></td>';
 		print '</tr>';
 	}
 
 	print "</table>";
-	
+
 	echo "
 		<script type='text/javascript'>
 			$(function() {
-					
+
 				function calculTotalExpeditionChecked()
 				{
 					var totalPriceChecked = 0;
@@ -358,22 +407,22 @@ if ($resql)
 						var price = $(this).attr('price');
 						totalPriceChecked += parseFloat(price);
 					});
-					
+
 					if (typeof totalPriceChecked.toFixed == 'function') totalPriceChecked = totalPriceChecked.toFixed(2);
 					totalPriceChecked = String(totalPriceChecked).replace('.', ',');
-					
+
 					$('#totalExpeditionChecked').html(totalPriceChecked);
 				}
-				
+
 				calculTotalExpeditionChecked();
-				
+
 				$('form[name=formAfficheListe] tr input.checkforgen').unbind().click(function() {
 					calculTotalExpeditionChecked();
 				});
 			})
 		</script>
 	";
-	
+
 	if($num > 0 && $user->rights->facture->creer) {
 		$f = new Form($db);
 		print '<br><div style="text-align: right;">';
@@ -438,8 +487,13 @@ if ($resql)
 		print '<br><br>';
 		$formfile = new FormFile($db);
 		$formfile->show_documents('ship2bill','',$diroutputpdf,$urlsource,false,true,'',1,1,0,48,1,$param,$langs->trans("GlobalGeneratedFiles"));
-	}
 	
+		echo '<div class="tabsAction">';
+		echo '<a class="butAction" href="?action=archive_files">'.$langs->trans('ArchiveFiles').'</a>';
+		echo '<a class="butAction" href="?action=delete_all_pdf_files">'.$langs->trans('DeleteAllFiles').'</a>';
+		echo '</div>';
+	}
+
 	$db->free($resql);
 }
 else

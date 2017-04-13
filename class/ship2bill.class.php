@@ -18,6 +18,7 @@ class Ship2Bill {
 		// Utilisation du module sous-total si activé
 		if($conf->subtotal->enabled) {
 			dol_include_once('/subtotal/class/actions_subtotal.class.php');
+			dol_include_once('/subtotal/class/subtotal.class.php');
 			$langs->load("subtotal@subtotal");
 			$sub = new ActionsSubtotal();
 		}
@@ -65,6 +66,9 @@ class Ship2Bill {
 					$f->update($user);
 					$nbFacture++;
 				}
+				
+				// Ajout pour éviter déclenchement d'autres modules, par exemple ecotaxdee
+				$f->context = array('origin'=>'shipping', 'origin_id'=>$id_exp);
 
 				// Ajout du titre
 				$this->facture_add_title($f, $exp, $sub);
@@ -96,6 +100,69 @@ class Ship2Bill {
 		return $nbFacture;
 	}
 
+	function removeAllPDFFile() {
+		global $conf, $langs;
+		$dir = $conf->ship2bill->multidir_output[$conf->entity].'/';
+		
+		$TFile = dol_dir_list( $dir );
+			
+		$inputfile = array();
+		foreach($TFile as $file) {
+	
+			$ext = pathinfo($file['fullname'], PATHINFO_EXTENSION);
+			if($ext == 'pdf') {
+				$ret = dol_delete_file($file['fullname'], 0, 0, 0);
+			}
+		}
+	
+	
+	}
+	
+	function zipFiles() {
+		global $conf, $langs;
+	
+		if (defined('ODTPHP_PATHTOPCLZIP'))
+		{
+	
+			include_once ODTPHP_PATHTOPCLZIP.'/pclzip.lib.php';
+	
+			$dir = $conf->ship2bill->multidir_output[$conf->entity].'/';
+				
+			$file = 'archive_'.date('Ymdhis').'.zip';
+				
+			if(file_exists($file))	unlink($file);
+				
+			$archive = new PclZip($dir.$file);
+	
+			$TFile = dol_dir_list( $dir );
+				
+			$inputfile = array();
+			foreach($TFile as $file) {
+					
+				$ext = pathinfo($file['fullname'], PATHINFO_EXTENSION);
+				if($ext == 'pdf') {
+					$inputfile[] = $file['fullname'];
+				}
+			}
+			if(count($inputfile)==0){
+				setEventMessage($langs->trans('NoFileInDirectory'),'warnings');
+				return;
+			}
+	
+	
+			$archive->add($inputfile, PCLZIP_OPT_REMOVE_PATH, $dir);
+	
+			setEventMessage($langs->trans('FilesArchived'));
+	
+			$this->removeAllPDFFile();
+		}
+		else {
+	
+			print "ERREUR : Librairie Zip non trouvée";
+		}
+	
+	}
+	
 	private function _clearTExpedition(&$db, &$TExpedition)
 	{
 		foreach($TExpedition as $id_client => &$Tid_exp)
@@ -176,15 +243,18 @@ class Ship2Bill {
 				$orderline = new OrderLine($db);
 				$orderline->fetch($l->fk_origin_line);
 				
+				// Si ligne du module sous-total et que sa description est vide alors il faut attribuer le label (le label ne semble pas être utiliser pour l'affichage car deprécié)
+				if (!empty($conf->subtotal->enabled) && $orderline->special_code == TSubtotal::$module_number && empty($l->description)) $l->description = $l->label;
+				
 				if((float)DOL_VERSION <= 3.4)
 					$f->addline($f->id, $l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'shipping',$l->line_id,0,$orderline->fk_fournprice,$orderline->pa_ht,$orderline->label);
 				else
-					$f->addline($l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'shipping',$l->line_id,0,$orderline->fk_fournprice,$orderline->pa_ht,$orderline->label);
+					$f->addline($l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,$orderline->product_type,-1,$orderline->special_code,'shipping',$l->line_id,0,$orderline->fk_fournprice,$orderline->pa_ht,$orderline->label);
 			}
 		}
 		
 		//Récupération des services de la commande si SHIP2BILL_GET_SERVICES_FROM_ORDER
-		if($conf->global->SHIP2BILL_GET_SERVICES_FROM_ORDER && (float)DOL_VERSION >= 3.5){
+		if($conf->global->SHIP2BILL_GET_SERVICES_FROM_ORDER && (float)DOL_VERSION >= 3.5 && empty($conf->global->STOCK_SUPPORTS_SERVICES)){
 			dol_include_once('/commande/class/commande.class.php');
 			
 			$commande = new Commande($db);
