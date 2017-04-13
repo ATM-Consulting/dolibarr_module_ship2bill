@@ -127,7 +127,7 @@ llxHeader('',$langs->trans('ShipmentToBill'),$helpurl);
 ?>
 <script type="text/javascript">
 $(document).ready(function() {
-	$("#checkall").click(function() {GenerationInProgress
+	$("#checkall").click(function() {
 		$(".checkforgen").attr('checked', true);
 	});
 	$("#checknone").click(function() {
@@ -256,7 +256,7 @@ if ($resql)
 	
 	$var=True;
 	$total = 0;
-	$checked = (empty($conf->global->SHIP2BILL_CHECKED_BY_DEFAULT)) ? '' : ' checked="GenerationInProgresschecked"';
+	$checked = (empty($conf->global->SHIP2BILL_CHECKED_BY_DEFAULT)) ? '' : ' checked="checked"';
 
 	while ($i < min($num,$limit))
 	{
