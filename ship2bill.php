@@ -428,7 +428,7 @@ if ($resql)
 		print '<br><div style="text-align: right;">';
 		print $langs->trans('Date').' : ';
 		$f->select_date('', 'dtfact');
-		print '<input class="butAction" type="input" id="subCreateBill" name="subCreateBill" value="'.$langs->trans('CreateInvoiceButton').'" />';
+		print '<input class="butAction" type="button" id="subCreateBill" name="subCreateBill" value="'.$langs->trans('CreateInvoiceButton').'"  />';
 		print '</div>';
 		
 		?>
