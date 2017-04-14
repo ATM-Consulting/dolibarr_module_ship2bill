@@ -185,7 +185,6 @@ class modShip2bill extends DolibarrModules
 								'mainmenu'=>'products',
 								'leftmenu'=>'sendings',
 								'url'=>'/ship2bill/ship2bill.php',
-								'langs'=>'ship2bill@ship2bill',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 								'position'=>100,
 								'enabled'=>'$conf->ship2bill->enabled',  // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
 								'perms'=>'$user->rights->ship2bill->read && $user->rights->expedition->lire',			                // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules

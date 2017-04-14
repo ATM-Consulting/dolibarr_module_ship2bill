@@ -20,3 +20,5 @@ GetServicesFromOrder=Get services from order shipping origin and add in generate
 
 Ship2BillSetup=Shipment to invoice module setup
 TotalHTShippingAndTotalHTBillCanBeDifferent=Be careful, with current configuration, shipping HT total and final bill HT total can be different
+
+GenerationInProgress=Generation in progress...

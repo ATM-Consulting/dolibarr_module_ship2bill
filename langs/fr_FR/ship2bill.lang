@@ -30,3 +30,4 @@ ArchiveFiles=Archiver les fichiers PDF
 DeleteAllFiles=Supprimer les fichiers PDF
 ConfirmDeleteAllFiles=Confirmer la suppression irréversible ?
 FilesArchived=Fichiers PDF archivés
+GenerationInProgress=Génération des factures en cours...

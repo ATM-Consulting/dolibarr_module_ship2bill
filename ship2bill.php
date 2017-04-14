@@ -22,14 +22,16 @@
  *      \ingroup    expedition
  *      \brief      Page to list all shipments
  */
-set_time_limit(180);
-
+ 
 require 'config.php';
 dol_include_once('/expedition/class/expedition.class.php');
 dol_include_once('/ship2bill/class/ship2bill.class.php');
 dol_include_once('/core/class/html.formfile.class.php');
 dol_include_once('/core/class/html.form.class.php');
 dol_include_once('/core/lib/files.lib.php');
+
+set_time_limit(0);
+ini_set('memory_limit','2048M');
 
 $langs->load("sendings");
 $langs->load("deliveries");
@@ -78,17 +80,19 @@ if(isset($_REQUEST['subCreateBill'])){
 	} else {
 		$dateFact = dol_mktime(0, 0, 0, GETPOST('dtfactmonth'), GETPOST('dtfactday'), GETPOST('dtfactyear'));
 	}
-
+	
 	if(empty($TExpedition)) {
 		setEventMessage($langs->trans('NoShipmentSelected'), 'warnings');
 	} else {
 		$ship2bill = new Ship2Bill();
-		$nbFacture = $ship2bill->generate_factures($TExpedition, $dateFact);
-
+		$nbFacture = $ship2bill->generate_factures($TExpedition, $dateFact,true);
+	
 		setEventMessage($langs->trans('InvoiceCreated', $nbFacture));
-		header("Location: ".dol_buildpath('/ship2bill/ship2bill.php',1));
-		exit;
+		/*header("Location: ".dol_buildpath('/ship2bill/ship2bill.php',1));*/
+		
 	}
+	
+	exit;
 }
 
 // Remove file
@@ -149,7 +153,7 @@ if (GETPOST("button_removefilter_x"))
 /*
  * View
  */
-
+ 
 $companystatic=new Societe($db);
 $shipment=new Expedition($db);
 
@@ -235,7 +239,7 @@ if ($resql)
 
 	print_barre_liste($langs->trans('ShipmentToBill').(!empty($conf->global->SHIP2BILL_GET_SERVICES_FROM_ORDER) ? ' ('.$langs->trans('TotalHTShippingAndTotalHTBillCanBeDifferent').')' : ''), $page, "ship2bill.php",$param,$sortfield,$sortorder,'',$num);
 
-	print '<form name="formAfficheListe" method="POST" action="ship2bill.php">';
+	print '<form name="formAfficheListe" id="formShip2Bill" method="POST" action="ship2bill.php">';
 
 	$i = 0;
 	print '<table class="noborder" width="100%">';
@@ -426,6 +430,56 @@ if ($resql)
 		$f->select_date('', 'dtfact');
 		print '<input class="butAction" type="submit" name="subCreateBill" value="'.$langs->trans('CreateInvoiceButton').'" />';
 		print '</div>';
+		
+		?>
+		<div id="pop-wait" style="display:none;text-align:center;"><?php echo img_picto('','ajax-loader.gif@ship2bill'); ?><br /><span class="info"></span></div>
+		<script type="text/javascript">
+		$('#formShip2Bill').submit(function() {
+
+			$('#pop-wait').dialog({
+				'modal':true
+				,title:"<?php echo $langs->trans('GenerationInProgress') ?>"
+				,open: function(event, ui) {
+			        $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
+			    }
+		    	,closeOnEscape: false
+			});
+			
+			var data = $(this).serialize();
+
+			$.ajax({
+				url:"<?php echo $_SERVER['PHP_SELF'] ?>"
+				,data:data+"&subCreateBill=1"
+				,method:"post"
+				,xhr: function() {
+			        var xhr = new window.XMLHttpRequest();
+
+			       // Download progress
+			       xhr.addEventListener("progress", function(evt){
+			    	   console.log('evt',evt);
+			           if (evt.lengthComputable) {
+			               var percentComplete = Math.round(evt.loaded / evt.total);
+			               // Do something with download progress
+			               $('#pop-wait span.info').html(percentComplete);
+			           }
+			       }, false);
+
+			       return xhr;
+			    }
+
+			}).done(function(result) {
+
+				//console.log(result);
+				document.location.href="<?php echo dol_buildpath('/ship2bill/ship2bill.php',1); ?>";
+			});
+			
+			return false;
+			
+		});
+		</script>
+		
+		<?php 
+		
 	}
 	print '</form>';
 
