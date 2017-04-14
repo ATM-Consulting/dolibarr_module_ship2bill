@@ -428,13 +428,13 @@ if ($resql)
 		print '<br><div style="text-align: right;">';
 		print $langs->trans('Date').' : ';
 		$f->select_date('', 'dtfact');
-		print '<input class="butAction" type="submit" name="subCreateBill" value="'.$langs->trans('CreateInvoiceButton').'" />';
+		print '<input class="butAction" type="input" id="subCreateBill" name="subCreateBill" value="'.$langs->trans('CreateInvoiceButton').'" />';
 		print '</div>';
 		
 		?>
 		<div id="pop-wait" style="display:none;text-align:center;"><?php echo img_picto('','ajax-loader.gif@ship2bill'); ?><br /><span class="info"></span></div>
 		<script type="text/javascript">
-		$('#formShip2Bill').submit(function() {
+		$('#subCreateBill').click(function() {
 
 			$('#pop-wait').dialog({
 				'modal':true
@@ -445,7 +445,7 @@ if ($resql)
 		    	,closeOnEscape: false
 			});
 			
-			var data = $(this).serialize();
+			var data = $("#formShip2Bill").serialize();
 
 			$.ajax({
 				url:"<?php echo $_SERVER['PHP_SELF'] ?>"
