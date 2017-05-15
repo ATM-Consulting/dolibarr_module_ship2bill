@@ -178,6 +178,7 @@ class modShip2bill extends DolibarrModules
 		$this->menu = array();			// List of menus to add
 		$r=0;
 
+		$langs->load('ship2bill@ship2bill');
 		
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=products,fk_leftmenu=sendings',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 								'type'=>'left',			                // This is a Left menu entry
