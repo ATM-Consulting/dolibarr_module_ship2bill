@@ -143,13 +143,13 @@ class InterfaceShip2billWorkflow
 						// Lien commande / facture
 						$object->add_object_linked('commande',$commande->id);
 						if($commande->statut == 3) {
-							$commande->classifyBilled();
+							$commande->classifyBilled($user);
 							$commande->fetchObjectLinked(0,'propal');
 							if(!empty($commande->linkedObjects['propal'])){
 								$propale = array_pop($commande->linkedObjects['propal']);
 								// Lien commande / facture
 								$object->add_object_linked('propal',$propale->id);
-								$propale->classifyBilled();
+								$propale->classifyBilled($user);
 							}
 						}
 					}
