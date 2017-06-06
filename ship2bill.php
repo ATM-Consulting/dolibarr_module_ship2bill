@@ -176,13 +176,13 @@ $(document).ready(function() {
 
 $sql = "SELECT e.rowid, e.ref, e.date_delivery as date_expedition, l.date_delivery as date_livraison, e.fk_statut
 		, s.nom as socname, s.rowid as socid, c.rowid as cdeid, c.ref as cderef, c.ref_client
-		FROM (".MAIN_DB_PREFIX."expedition as e";
+		FROM ".MAIN_DB_PREFIX."expedition as e";
 if (!$user->rights->societe->client->voir && !$socid)	// Internal user with no permission to see all
 {
-	$sql.= ", ".MAIN_DB_PREFIX."societe_commerciaux as sc";
+	$sql.= "INNER JOIN ".MAIN_DB_PREFIX."societe_commerciaux as sc ON e.fk_soc = sc.fk_soc AND sc.fk_user = " .$user->id;
 }
-$sql.= ")
-		LEFT JOIN ".MAIN_DB_PREFIX."societe as s ON s.rowid = e.fk_soc
+$sql.= "
+		INNER JOIN ".MAIN_DB_PREFIX."societe as s ON s.rowid = e.fk_soc
 		LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee3
  			ON
  		((e.rowid = ee3.fk_target AND ee3.sourcetype = 'commande' AND ee3.targettype = 'shipping')
@@ -204,10 +204,6 @@ $sql.= ")
 		WHERE e.entity = ".$conf->entity."
 		AND e.fk_statut >= 1
 		AND f.rowid IS NULL AND c.facture = 0";
-if (!$user->rights->societe->client->voir && !$socid)	// Internal user with no permission to see all
-{
-	$sql.= " AND e.fk_soc = sc.fk_soc AND sc.fk_user = " .$user->id;
-}
 if ($socid)
 {
 	$sql.= " AND e.fk_soc = ".$socid;
