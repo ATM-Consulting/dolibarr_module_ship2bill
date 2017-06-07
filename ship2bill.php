@@ -186,18 +186,15 @@ $sql.= "
 		LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee3
  			ON
  		((e.rowid = ee3.fk_target AND ee3.sourcetype = 'commande' AND ee3.targettype = 'shipping')
- 			OR
- 		(e.rowid = ee3.fk_source AND ee3.targettype = 'commande' AND ee3.sourcetype = 'shipping'))
+ 			)
 		LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee2
  			ON
  		((e.rowid = ee2.fk_source AND ee2.sourcetype = 'shipping' AND ee2.targettype = 'facture')
-			OR
-		(e.rowid = ee2.fk_target AND ee2.targettype = 'shipping' AND ee2.sourcetype = 'facture'))
+			)
 		LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee
  			ON
  		((e.rowid = ee.fk_source AND ee.sourcetype = 'shipping' AND ee.targettype = 'delivery')
- 			OR
- 		(e.rowid = ee.fk_target AND ee.targettype = 'shipping' AND ee.sourcetype = 'delivery'))
+ 			)
 		LEFT JOIN ".MAIN_DB_PREFIX."livraison as l ON l.rowid = ee.fk_target
 		LEFT JOIN ".MAIN_DB_PREFIX."facture as f ON f.rowid = ee2.fk_target
 		LEFT JOIN ".MAIN_DB_PREFIX."commande as c ON c.rowid = ee3.fk_source
@@ -215,10 +212,58 @@ if ($search_ref_liv) $sql .= natural_search('l.ref', $search_ref_liv);
 if ($search_societe) $sql .= natural_search('s.nom', $search_societe);
 if ($search_status != -1 && $search_status != '')  $sql .= " AND e.fk_statut = ".$search_status;
 
-$sql.= $db->order($sortfield,$sortorder);
-$sql.= $db->plimit($limit + 1,$offset);
 
-$resql=$db->query($sql);
+
+$sql2 = "SELECT e.rowid, e.ref, e.date_delivery as date_expedition, l.date_delivery as date_livraison, e.fk_statut
+		, s.nom as socname, s.rowid as socid, c.rowid as cdeid, c.ref as cderef, c.ref_client
+		FROM ".MAIN_DB_PREFIX."expedition as e";
+if (!$user->rights->societe->client->voir && !$socid)	// Internal user with no permission to see all
+{
+	$sql2.= "INNER JOIN ".MAIN_DB_PREFIX."societe_commerciaux as sc ON e.fk_soc = sc.fk_soc AND sc.fk_user = " .$user->id;
+}
+$sql2.= "
+		INNER JOIN ".MAIN_DB_PREFIX."societe as s ON s.rowid = e.fk_soc
+		LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee3
+ 			ON
+ 		(
+ 		(e.rowid = ee3.fk_source AND ee3.targettype = 'commande' AND ee3.sourcetype = 'shipping'))
+		LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee2
+ 			ON
+ 		(
+		(e.rowid = ee2.fk_target AND ee2.targettype = 'shipping' AND ee2.sourcetype = 'facture'))
+		LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee
+ 			ON
+ 		(
+ 		(e.rowid = ee.fk_target AND ee.targettype = 'shipping' AND ee.sourcetype = 'delivery'))
+		LEFT JOIN ".MAIN_DB_PREFIX."livraison as l ON l.rowid = ee.fk_target
+		LEFT JOIN ".MAIN_DB_PREFIX."facture as f ON f.rowid = ee2.fk_target
+		LEFT JOIN ".MAIN_DB_PREFIX."commande as c ON c.rowid = ee3.fk_source
+		WHERE e.entity = ".$conf->entity."
+		AND e.fk_statut >= 1
+		AND f.rowid IS NULL AND c.facture = 0";
+if ($socid)
+{
+	$sql2.= " AND e.fk_soc = ".$socid;
+}
+if ($search_ref_exp) $sql2 .= natural_search('e.ref', $search_ref_exp);
+if ($search_ref_client) $sql2 .= natural_search('c.ref_client', $search_ref_client);
+if ($search_ref_cde) $sql2 .= natural_search('c.ref', $search_ref_cde);
+if ($search_ref_liv) $sql2 .= natural_search('l.ref', $search_ref_liv);
+if ($search_societe) $sql2 .= natural_search('s.nom', $search_societe);
+if ($search_status != -1 && $search_status != '')  $sql2 .= " AND e.fk_statut = ".$search_status;
+
+$db->query("CREATE TEMPORARY TABLE ".MAIN_DB_PREFIX."ship2bill_view ".$sql." UNION ".$sql2 );
+
+if(strpos($sortfield,'.')!==false) {
+	list($dummy,$sortfield) = explode('.', $sortfield);
+}
+
+$sqlView="SELECT * FROM ".MAIN_DB_PREFIX."ship2bill_view ";
+
+$sqlView.= $db->order($sortfield,$sortorder);
+$sqlView.= $db->plimit($limit + 1,$offset);
+
+$resql=$db->query($sqlView);
 
 if ($resql)
 {
