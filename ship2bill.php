@@ -254,7 +254,8 @@ if ($search_status != -1 && $search_status != '')  $sql2 .= " AND e.fk_statut = 
 
 $db->query("CREATE TEMPORARY TABLE ".MAIN_DB_PREFIX."ship2bill_view ".$sql." UNION ".$sql2 );
 
-if(strpos($sortfield,'.')!==false) {
+$sortfieldClean = $sortfield;
+if(strpos($sortfieldClean,'.')!==false) {
 	list($dummy,$sortfieldClean) = explode('.', $sortfield);
 }
 
@@ -289,7 +290,7 @@ if ($resql)
 	print_liste_field_titre($langs->trans("Ref"),"ship2bill.php","e.ref","",$param,'',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("RefOrder"),"ship2bill.php","c.ref","",$param,'',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("Réf. Client"),"ship2bill.php","c.ref_client","",$param,'',$sortfield,$sortorder);
-	print_liste_field_titre($langs->trans("Company"),"ship2bill.php","s.nom", "", $param,'align="left"',$sortfield,$sortorder);
+	print_liste_field_titre($langs->trans("Company"),"ship2bill.php","socname", "", $param,'align="left"',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("DateDeliveryPlanned"),"ship2bill.php","e.date_delivery","",$param, 'align="center"',$sortfield,$sortorder);
 	if($conf->livraison_bon->enabled) {
 		print_liste_field_titre($langs->trans("DeliveryOrder"),"ship2bill.php","e.date_expedition","",$param, '',$sortfield,$sortorder);
