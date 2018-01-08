@@ -52,6 +52,7 @@ $search_ref_cde = GETPOST("search_ref_cde");
 $search_ref_liv = GETPOST('search_ref_liv');
 $search_societe = GETPOST("search_societe");
 $search_status = GETPOST("search_status");
+$search_order_statut=GETPOST('search_order_statut','int');
 
 $sortfield = GETPOST('sortfield','alpha');
 $sortorder = GETPOST('sortorder','alpha');
@@ -211,6 +212,7 @@ if ($search_ref_cde) $sql .= natural_search('c.ref', $search_ref_cde);
 if ($search_ref_liv) $sql .= natural_search('l.ref', $search_ref_liv);
 if ($search_societe) $sql .= natural_search('s.nom', $search_societe);
 if ($search_status != -1 && $search_status != '')  $sql .= " AND e.fk_statut = ".$search_status;
+if ($search_order_statut != -4 && $search_order_statut != -1 && $search_order_statut != '')  $sql .= " AND c.fk_statut = ".intval($search_order_statut) ;
 
 
 
@@ -269,7 +271,7 @@ $resql=$db->query($sqlView);
 if ($resql)
 {
 	$num = $db->num_rows($resql);
-	$colspan = 6;
+	$colspan = 7;
 
 	$param="&amp;socid=$socid";
 	if ($search_ref_exp) $param.= "&amp;search_ref_exp=".$search_ref_exp;
@@ -296,7 +298,8 @@ if ($resql)
 		print_liste_field_titre($langs->trans("DeliveryOrder"),"ship2bill.php","e.date_expedition","",$param, '',$sortfield,$sortorder);
 		print_liste_field_titre($langs->trans("DateReceived"),"ship2bill.php","e.date_expedition","",$param, 'align="center"',$sortfield,$sortorder);
 	}
-	print_liste_field_titre($langs->trans("Status"),"ship2bill.php","e.fk_statut","",$param,'align="right"',$sortfield,$sortorder);
+	print_liste_field_titre($langs->trans("Stateshipment"),"ship2bill.php","e.fk_statut","",$param,'align="right"',$sortfield,$sortorder);
+	print_liste_field_titre($langs->trans("StateOrder"),"ship2bill.php","c.status","",$param,'align="right"',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("AmountHT"),"ship2bill.php","","",$param,'align="right"',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("ShipmentToBill"),"shiptobill.php","","",$param, 'align="center"',$sortfield,$sortorder);
 	print "</tr>\n";
@@ -305,10 +308,10 @@ if ($resql)
 	print '<tr class="liste_titre">';
 	print '<td class="liste_titre">';
 	print '<input class="flat" size="10" type="text" name="search_ref_exp" value="'.$search_ref_exp.'">';
-    print '</td>';
-    print '<td class="liste_titre">';
+	print '</td>';
+	print '<td class="liste_titre">';
 	print '<input class="flat" size="10" type="text" name="search_ref_cde" value="'.$search_ref_cde.'">';
-    print '</td>';
+	print '</td>';
     print '<td class="liste_titre">';
 	print '<input class="flat" size="10" type="text" name="search_ref_client" value="'.$search_ref_client.'">';
     print '</td>';
@@ -331,6 +334,16 @@ if ($resql)
 	$TStatus[2] = $langs->trans('StatusSendingProcessedShort');
 	$f = new Form($db);
 	print $f->selectarray('search_status', $TStatus, $search_status, true);
+	print '</td>';
+	print '<td class="liste_titre"  align="right" >';
+	$liststatus=array(
+			Commande::STATUS_DRAFT=>$langs->trans("StatusOrderDraftShort"),
+			Commande::STATUS_VALIDATED=>$langs->trans("StatusOrderValidated"),
+			Commande::STATUS_ACCEPTED=>$langs->trans("StatusOrderSentShort"),
+			Commande::STATUS_CLOSED=>$langs->trans("StatusOrderDelivered"),
+			Commande::STATUS_CANCELED=>$langs->trans("StatusOrderCanceledShort")
+	);
+	print $form->selectarray('search_order_statut', $liststatus, $search_order_statut, -4);
 	print '</td>';
 	print '<td class="liste_titre" align="right">';
 	// Développé dans la 3.7
@@ -369,7 +382,7 @@ if ($resql)
 		$commande->fetch($objp->cdeid); // Plus propre
 		print $commande->getNomUrl(1);
 		print "</td>\n";
-
+		
 		// Order ref client
 		print "<td>";
 		print $objp->ref_client;
@@ -406,7 +419,9 @@ if ($resql)
 			print "</td>\n";
 		}
 
-		print '<td align="right">'.$shipment->getLibStatut(5).'</td>';
+		print '<td align="right">'.$shipment->getLibStatut(5).'</td>'."\n";
+		print '<td align="right">'.$commande->getLibStatut(5).'</td>'."\n";
+		
 		print '<td align="right" class="totalShipment">'.price($shipment->total_ht).'</td>';
 
 		// Sélection expé à facturer

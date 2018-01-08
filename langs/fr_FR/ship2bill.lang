@@ -31,3 +31,5 @@ DeleteAllFiles=Supprimer les fichiers PDF
 ConfirmDeleteAllFiles=Confirmer la suppression irréversible ?
 FilesArchived=Fichiers PDF archivés
 GenerationInProgress=Génération des factures en cours...
+StateOrder=État commande
+Stateshipment=État expédition

@@ -11,3 +11,5 @@ AddShipmentSubtotal=Aggiungi sub-totale per ogni spedizione
 CloseShipment=Chiudi automaticamente la spedizione dopo la creazione della fattura
 
 Ship2BillSetup=Expedition to Bill - Impostazioni del Modulo
+StateOrder=Stato dell'ordine
+Stateshipment=stato di spedizione
