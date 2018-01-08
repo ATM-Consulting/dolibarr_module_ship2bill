@@ -212,7 +212,7 @@ if ($search_ref_cde) $sql .= natural_search('c.ref', $search_ref_cde);
 if ($search_ref_liv) $sql .= natural_search('l.ref', $search_ref_liv);
 if ($search_societe) $sql .= natural_search('s.nom', $search_societe);
 if ($search_status != -1 && $search_status != '')  $sql .= " AND e.fk_statut = ".$search_status;
-if ($search_order_statut != -1 && !empty($search_order_statut))  $sql .= " AND c.fk_statut = ".intval($search_order_statut) ;
+if ($search_order_statut != -4 && $search_order_statut != -1 && $search_order_statut != '')  $sql .= " AND c.fk_statut = ".intval($search_order_statut) ;
 
 
 
@@ -271,7 +271,7 @@ $resql=$db->query($sqlView);
 if ($resql)
 {
 	$num = $db->num_rows($resql);
-	$colspan = 6;
+	$colspan = 7;
 
 	$param="&amp;socid=$socid";
 	if ($search_ref_exp) $param.= "&amp;search_ref_exp=".$search_ref_exp;
