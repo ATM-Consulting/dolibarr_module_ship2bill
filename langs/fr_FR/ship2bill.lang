@@ -33,3 +33,4 @@ FilesArchived=Fichiers PDF archivés
 GenerationInProgress=Génération des factures en cours...
 StateOrder=État commande
 Stateshipment=État expédition
+SHIP2BILL_LIST_LENGTH=Nombre d'expéditions à afficher dans la liste des expéditions facturables <br> (laisser vide pour utiliser la configuration de dolibarr)

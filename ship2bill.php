@@ -58,6 +58,7 @@ $sortfield = GETPOST('sortfield','alpha');
 $sortorder = GETPOST('sortorder','alpha');
 $page = GETPOST('page','int');
 $diroutputpdf=$conf->ship2bill->multidir_output[$conf->entity];
+if (!empty($conf->global->SHIP2BILL_LIST_LENGTH)) $conf->liste_limit = $conf->global->SHIP2BILL_LIST_LENGTH;
 
 if ($page == -1) { $page = 0; }
 $offset = $conf->liste_limit * $page;
