@@ -1,13 +1,40 @@
-Module104140Name = Expedition to Bill
+Module104140Name = Spedizioni da fatturare
 Module104140Desc = Permette di creare fatture da diverse spedizioni
 
-Ship2BillMenu=Spedizioni Fatturabili
-ShipmentToBill=Shipments to bill
+Ship2BillMenu=Spedizioni fatturabili
+ShipmentToBill=Spedizioni da fatturare
 CreateInvoiceButton=Crea fatture
-NoShipmentSelected=Nessuna spedizione creata
+NoShipmentSelected=Nessuna spedizione selezionata
 InvoiceCreated=%s Fattura(e) creata
 AddShipmentAsTitles=Aggiungi informazioni spedizione come titolo
 AddShipmentSubtotal=Aggiungi sub-totale per ogni spedizione
 CloseShipment=Chiudi automaticamente la spedizione dopo la creazione della fattura
+CreateOneInvoicePerShipment=Crea una fattura per spedizione
+ValidInvoice=Convalida automaticamente le fatture create
+GenerateInvoicePDF=Modello PDF da utilizzare per la generazione automatica della fattura (potrebbe impiegare qualche secondo in più)
+GenerateGlobalPDF=Gerare un file pdf globale contentete le fatture generate
+WarehouseToUseAfterInvoiceValidation=Magazzino da utilizzare per la gestione delle scorte dopo la convalida delle fatture
+GlobalGeneratedFiles=Files contenenti le fatture generate
+ShipmentBilled=Spedizioni fatturate
+GetServicesFromOrder=Ottieni i servizi dall'ordine cliente collegato alla spedizione e aggiungili alla fattura generata
+ClassifiedPayedOrder=Classifica come fatturato l'ordine cliente d'origine (se spedito) quando la fattura della spedizione viene convalidata 
+DisplayCustomerInTitle=Mostra il nome del cliente nel titolo
+CheckedByDefault=Pre-controlla le spedizioni in lista
 
 Ship2BillSetup=Expedition to Bill - Impostazioni del Modulo
+UseDefaultBankAccountInInvoiceModule=Utilizzare il conto bancario di default inserito nella configurazione del modulo di fatturazione se il pagamento avviene tramite bonifico bancario
+TotalHTShippingAndTotalHTBillCanBeDifferent=Attenzione! Con l'attuale configurazione il totale netto delle spedizioni potrà essere diverso dal totale netto fatturato
+
+StateOrder=Stato ordine
+Stateshipment=Stato spedizione
+GenerationInProgress=Generazione file in corso...
+FilesWereRemoved=File PDF eliminati
+ArchiveFiles=Archivia file PDF
+DeleteAllFiles=Elimina file PDF
+ConfirmDeleteAllFiles=Confermare l'eliminazione dei files? (operazione irreversibile)
+FilesArchived=PDF archiviati
+ConfirmArchiveFiles=Vuoi davvero archiviare i files pdf?
+
+
+
+

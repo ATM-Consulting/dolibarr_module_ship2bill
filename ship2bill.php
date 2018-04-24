@@ -22,14 +22,16 @@
  *      \ingroup    expedition
  *      \brief      Page to list all shipments
  */
-set_time_limit(180);
-
+ 
 require 'config.php';
 dol_include_once('/expedition/class/expedition.class.php');
 dol_include_once('/ship2bill/class/ship2bill.class.php');
 dol_include_once('/core/class/html.formfile.class.php');
 dol_include_once('/core/class/html.form.class.php');
 dol_include_once('/core/lib/files.lib.php');
+
+set_time_limit(0);
+ini_set('memory_limit','2048M');
 
 $langs->load("sendings");
 $langs->load("deliveries");
@@ -50,6 +52,7 @@ $search_ref_cde = GETPOST("search_ref_cde");
 $search_ref_liv = GETPOST('search_ref_liv');
 $search_societe = GETPOST("search_societe");
 $search_status = GETPOST("search_status");
+$search_order_statut=GETPOST('search_order_statut','int');
 
 $sortfield = GETPOST('sortfield','alpha');
 $sortorder = GETPOST('sortorder','alpha');
@@ -79,17 +82,19 @@ if(isset($_REQUEST['subCreateBill'])){
 	} else {
 		$dateFact = dol_mktime(0, 0, 0, GETPOST('dtfactmonth'), GETPOST('dtfactday'), GETPOST('dtfactyear'));
 	}
-
+	
 	if(empty($TExpedition)) {
 		setEventMessage($langs->trans('NoShipmentSelected'), 'warnings');
 	} else {
 		$ship2bill = new Ship2Bill();
-		$nbFacture = $ship2bill->generate_factures($TExpedition, $dateFact);
-
+		$nbFacture = $ship2bill->generate_factures($TExpedition, $dateFact,true);
+	
 		setEventMessage($langs->trans('InvoiceCreated', $nbFacture));
-		header("Location: ".dol_buildpath('/ship2bill/ship2bill.php',1));
-		exit;
+		/*header("Location: ".dol_buildpath('/ship2bill/ship2bill.php',1));*/
+		
 	}
+	
+	exit;
 }
 
 // Remove file
@@ -150,7 +155,7 @@ if (GETPOST("button_removefilter_x"))
 /*
  * View
  */
-
+ 
 $companystatic=new Societe($db);
 $shipment=new Expedition($db);
 
@@ -173,38 +178,31 @@ $(document).ready(function() {
 
 $sql = "SELECT e.rowid, e.ref, e.date_delivery as date_expedition, l.date_delivery as date_livraison, e.fk_statut
 		, s.nom as socname, s.rowid as socid, c.rowid as cdeid, c.ref as cderef, c.ref_client
-		FROM (".MAIN_DB_PREFIX."expedition as e";
+		FROM ".MAIN_DB_PREFIX."expedition as e";
 if (!$user->rights->societe->client->voir && !$socid)	// Internal user with no permission to see all
 {
-	$sql.= ", ".MAIN_DB_PREFIX."societe_commerciaux as sc";
+	$sql.= "INNER JOIN ".MAIN_DB_PREFIX."societe_commerciaux as sc ON e.fk_soc = sc.fk_soc AND sc.fk_user = " .$user->id;
 }
-$sql.= ")
-		LEFT JOIN ".MAIN_DB_PREFIX."societe as s ON s.rowid = e.fk_soc
+$sql.= "
+		INNER JOIN ".MAIN_DB_PREFIX."societe as s ON s.rowid = e.fk_soc
 		LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee3
  			ON
  		((e.rowid = ee3.fk_target AND ee3.sourcetype = 'commande' AND ee3.targettype = 'shipping')
- 			OR
- 		(e.rowid = ee3.fk_source AND ee3.targettype = 'commande' AND ee3.sourcetype = 'shipping'))
+ 			)
 		LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee2
  			ON
  		((e.rowid = ee2.fk_source AND ee2.sourcetype = 'shipping' AND ee2.targettype = 'facture')
-			OR
-		(e.rowid = ee2.fk_target AND ee2.targettype = 'shipping' AND ee2.sourcetype = 'facture'))
+			)
 		LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee
  			ON
  		((e.rowid = ee.fk_source AND ee.sourcetype = 'shipping' AND ee.targettype = 'delivery')
- 			OR
- 		(e.rowid = ee.fk_target AND ee.targettype = 'shipping' AND ee.sourcetype = 'delivery'))
+ 			)
 		LEFT JOIN ".MAIN_DB_PREFIX."livraison as l ON l.rowid = ee.fk_target
 		LEFT JOIN ".MAIN_DB_PREFIX."facture as f ON f.rowid = ee2.fk_target
 		LEFT JOIN ".MAIN_DB_PREFIX."commande as c ON c.rowid = ee3.fk_source
 		WHERE e.entity = ".$conf->entity."
 		AND e.fk_statut >= 1
 		AND f.rowid IS NULL AND c.facture = 0";
-if (!$user->rights->societe->client->voir && !$socid)	// Internal user with no permission to see all
-{
-	$sql.= " AND e.fk_soc = sc.fk_soc AND sc.fk_user = " .$user->id;
-}
 if ($socid)
 {
 	$sql.= " AND e.fk_soc = ".$socid;
@@ -215,16 +213,66 @@ if ($search_ref_cde) $sql .= natural_search('c.ref', $search_ref_cde);
 if ($search_ref_liv) $sql .= natural_search('l.ref', $search_ref_liv);
 if ($search_societe) $sql .= natural_search('s.nom', $search_societe);
 if ($search_status != -1 && $search_status != '')  $sql .= " AND e.fk_statut = ".$search_status;
+if ($search_order_statut != -4 && $search_order_statut != -1 && $search_order_statut != '')  $sql .= " AND c.fk_statut = ".intval($search_order_statut) ;
 
-$sql.= $db->order($sortfield,$sortorder);
-$sql.= $db->plimit($limit + 1,$offset);
 
-$resql=$db->query($sql);
+
+$sql2 = "SELECT e.rowid, e.ref, e.date_delivery as date_expedition, l.date_delivery as date_livraison, e.fk_statut
+		, s.nom as socname, s.rowid as socid, c.rowid as cdeid, c.ref as cderef, c.ref_client
+		FROM ".MAIN_DB_PREFIX."expedition as e";
+if (!$user->rights->societe->client->voir && !$socid)	// Internal user with no permission to see all
+{
+	$sql2.= "INNER JOIN ".MAIN_DB_PREFIX."societe_commerciaux as sc ON e.fk_soc = sc.fk_soc AND sc.fk_user = " .$user->id;
+}
+$sql2.= "
+		INNER JOIN ".MAIN_DB_PREFIX."societe as s ON s.rowid = e.fk_soc
+		LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee3
+ 			ON
+ 		(
+ 		(e.rowid = ee3.fk_source AND ee3.targettype = 'commande' AND ee3.sourcetype = 'shipping'))
+		LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee2
+ 			ON
+ 		(
+		(e.rowid = ee2.fk_target AND ee2.targettype = 'shipping' AND ee2.sourcetype = 'facture'))
+		LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee
+ 			ON
+ 		(
+ 		(e.rowid = ee.fk_target AND ee.targettype = 'shipping' AND ee.sourcetype = 'delivery'))
+		LEFT JOIN ".MAIN_DB_PREFIX."livraison as l ON l.rowid = ee.fk_target
+		LEFT JOIN ".MAIN_DB_PREFIX."facture as f ON f.rowid = ee2.fk_target
+		LEFT JOIN ".MAIN_DB_PREFIX."commande as c ON c.rowid = ee3.fk_source
+		WHERE e.entity = ".$conf->entity."
+		AND e.fk_statut >= 1
+		AND f.rowid IS NULL AND c.facture = 0";
+if ($socid)
+{
+	$sql2.= " AND e.fk_soc = ".$socid;
+}
+if ($search_ref_exp) $sql2 .= natural_search('e.ref', $search_ref_exp);
+if ($search_ref_client) $sql2 .= natural_search('c.ref_client', $search_ref_client);
+if ($search_ref_cde) $sql2 .= natural_search('c.ref', $search_ref_cde);
+if ($search_ref_liv) $sql2 .= natural_search('l.ref', $search_ref_liv);
+if ($search_societe) $sql2 .= natural_search('s.nom', $search_societe);
+if ($search_status != -1 && $search_status != '')  $sql2 .= " AND e.fk_statut = ".$search_status;
+
+$db->query("CREATE TEMPORARY TABLE ".MAIN_DB_PREFIX."ship2bill_view ".$sql." UNION ".$sql2 );
+
+$sortfieldClean = $sortfield;
+if(strpos($sortfieldClean,'.')!==false) {
+	list($dummy,$sortfieldClean) = explode('.', $sortfield);
+}
+
+$sqlView="SELECT * FROM ".MAIN_DB_PREFIX."ship2bill_view ";
+
+$sqlView.= $db->order($sortfieldClean,$sortorder);
+$sqlView.= $db->plimit($limit + 1,$offset);
+
+$resql=$db->query($sqlView);
 
 if ($resql)
 {
 	$num = $db->num_rows($resql);
-	$colspan = 6;
+	$colspan = 7;
 
 	$param="&amp;socid=$socid";
 	if ($search_ref_exp) $param.= "&amp;search_ref_exp=".$search_ref_exp;
@@ -236,7 +284,7 @@ if ($resql)
 
 	print_barre_liste($langs->trans('ShipmentToBill').(!empty($conf->global->SHIP2BILL_GET_SERVICES_FROM_ORDER) ? ' ('.$langs->trans('TotalHTShippingAndTotalHTBillCanBeDifferent').')' : ''), $page, "ship2bill.php",$param,$sortfield,$sortorder,'',$num);
 
-	print '<form name="formAfficheListe" method="POST" action="ship2bill.php">';
+	print '<form name="formAfficheListe" id="formShip2Bill" method="POST" action="ship2bill.php">';
 
 	$i = 0;
 	print '<table class="noborder" width="100%">';
@@ -245,13 +293,14 @@ if ($resql)
 	print_liste_field_titre($langs->trans("Ref"),"ship2bill.php","e.ref","",$param,'',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("RefOrder"),"ship2bill.php","c.ref","",$param,'',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("Réf. Client"),"ship2bill.php","c.ref_client","",$param,'',$sortfield,$sortorder);
-	print_liste_field_titre($langs->trans("Company"),"ship2bill.php","s.nom", "", $param,'align="left"',$sortfield,$sortorder);
-	print_liste_field_titre($langs->trans("DateDeliveryPlanned"),"ship2bill.php","e.date_delivery","",$param, 'align="center"',$sortfield,$sortorder);
+	print_liste_field_titre($langs->trans("Company"),"ship2bill.php","socname", "", $param,'align="left"',$sortfield,$sortorder);
+	print_liste_field_titre($langs->trans("DateDeliveryPlanned"),"ship2bill.php","date_expedition","",$param, 'align="center"',$sortfield,$sortorder);
 	if($conf->livraison_bon->enabled) {
 		print_liste_field_titre($langs->trans("DeliveryOrder"),"ship2bill.php","e.date_expedition","",$param, '',$sortfield,$sortorder);
 		print_liste_field_titre($langs->trans("DateReceived"),"ship2bill.php","e.date_expedition","",$param, 'align="center"',$sortfield,$sortorder);
 	}
-	print_liste_field_titre($langs->trans("Status"),"ship2bill.php","e.fk_statut","",$param,'align="right"',$sortfield,$sortorder);
+	print_liste_field_titre($langs->trans("Stateshipment"),"ship2bill.php","e.fk_statut","",$param,'align="right"',$sortfield,$sortorder);
+	print_liste_field_titre($langs->trans("StateOrder"),"ship2bill.php","c.status","",$param,'align="right"',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("AmountHT"),"ship2bill.php","","",$param,'align="right"',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("ShipmentToBill"),"shiptobill.php","","",$param, 'align="center"',$sortfield,$sortorder);
 	print "</tr>\n";
@@ -260,10 +309,10 @@ if ($resql)
 	print '<tr class="liste_titre">';
 	print '<td class="liste_titre">';
 	print '<input class="flat" size="10" type="text" name="search_ref_exp" value="'.$search_ref_exp.'">';
-    print '</td>';
-    print '<td class="liste_titre">';
+	print '</td>';
+	print '<td class="liste_titre">';
 	print '<input class="flat" size="10" type="text" name="search_ref_cde" value="'.$search_ref_cde.'">';
-    print '</td>';
+	print '</td>';
     print '<td class="liste_titre">';
 	print '<input class="flat" size="10" type="text" name="search_ref_client" value="'.$search_ref_client.'">';
     print '</td>';
@@ -286,6 +335,16 @@ if ($resql)
 	$TStatus[2] = $langs->trans('StatusSendingProcessedShort');
 	$f = new Form($db);
 	print $f->selectarray('search_status', $TStatus, $search_status, true);
+	print '</td>';
+	print '<td class="liste_titre"  align="right" >';
+	$liststatus=array(
+			Commande::STATUS_DRAFT=>$langs->trans("StatusOrderDraftShort"),
+			Commande::STATUS_VALIDATED=>$langs->trans("StatusOrderValidated"),
+			Commande::STATUS_ACCEPTED=>$langs->trans("StatusOrderSentShort"),
+			Commande::STATUS_CLOSED=>$langs->trans("StatusOrderDelivered"),
+			Commande::STATUS_CANCELED=>$langs->trans("StatusOrderCanceledShort")
+	);
+	print $form->selectarray('search_order_statut', $liststatus, $search_order_statut, -4);
 	print '</td>';
 	print '<td class="liste_titre" align="right">';
 	// Développé dans la 3.7
@@ -324,7 +383,7 @@ if ($resql)
 		$commande->fetch($objp->cdeid); // Plus propre
 		print $commande->getNomUrl(1);
 		print "</td>\n";
-
+		
 		// Order ref client
 		print "<td>";
 		print $objp->ref_client;
@@ -361,7 +420,9 @@ if ($resql)
 			print "</td>\n";
 		}
 
-		print '<td align="right">'.$shipment->getLibStatut(5).'</td>';
+		print '<td align="right">'.$shipment->getLibStatut(5).'</td>'."\n";
+		print '<td align="right">'.$commande->getLibStatut(5).'</td>'."\n";
+		
 		print '<td align="right" class="totalShipment">'.price($shipment->total_ht).'</td>';
 
 		// Sélection expé à facturer
@@ -425,8 +486,58 @@ if ($resql)
 		print '<br><div style="text-align: right;">';
 		print $langs->trans('Date').' : ';
 		$f->select_date('', 'dtfact');
-		print '<input class="butAction" type="submit" name="subCreateBill" value="'.$langs->trans('CreateInvoiceButton').'" />';
+		print '<input class="butAction" type="button" id="subCreateBill" name="subCreateBill" value="'.$langs->trans('CreateInvoiceButton').'"  />';
 		print '</div>';
+		
+		?>
+		<div id="pop-wait" style="display:none;text-align:center;"><?php echo img_picto('','ajax-loader.gif@ship2bill'); ?><br /><span class="info"></span></div>
+		<script type="text/javascript">
+		$('#subCreateBill').click(function() {
+
+			$('#pop-wait').dialog({
+				'modal':true
+				,title:"<?php echo $langs->trans('GenerationInProgress') ?>"
+				,open: function(event, ui) {
+			        $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
+			    }
+		    	,closeOnEscape: false
+			});
+			
+			var data = $("#formShip2Bill").serialize();
+
+			$.ajax({
+				url:"<?php echo $_SERVER['PHP_SELF'] ?>"
+				,data:data+"&subCreateBill=1"
+				,method:"post"
+				,xhr: function() {
+			        var xhr = new window.XMLHttpRequest();
+
+			       // Download progress
+			       xhr.addEventListener("progress", function(evt){
+			    	   console.log('evt',evt);
+			           if (evt.lengthComputable) {
+			               var percentComplete = Math.round(evt.loaded / evt.total);
+			               // Do something with download progress
+			               $('#pop-wait span.info').html(percentComplete);
+			           }
+			       }, false);
+
+			       return xhr;
+			    }
+
+			}).done(function(result) {
+
+				//console.log(result);
+				document.location.href="<?php echo dol_buildpath('/ship2bill/ship2bill.php',1); ?>";
+			});
+			
+			return false;
+			
+		});
+		</script>
+		
+		<?php 
+		
 	}
 	print '</form>';
 

@@ -55,7 +55,7 @@ class modShip2bill extends DolibarrModules
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Module permettant de regrouper plusieurs expéditions en une seule facture";
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '1.3';
+		$this->version = '1.3.2';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
@@ -178,14 +178,14 @@ class modShip2bill extends DolibarrModules
 		$this->menu = array();			// List of menus to add
 		$r=0;
 
+		$langs->load('ship2bill@ship2bill');
 		
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=products,fk_leftmenu=sendings',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 								'type'=>'left',			                // This is a Left menu entry
-								'titre'=>'Ship2BillMenu',
+								'titre'=>$langs->trans('Ship2BillMenu'),
 								'mainmenu'=>'products',
 								'leftmenu'=>'sendings',
 								'url'=>'/ship2bill/ship2bill.php',
-								'langs'=>'ship2bill@ship2bill',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 								'position'=>100,
 								'enabled'=>'$conf->ship2bill->enabled',  // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
 								'perms'=>'$user->rights->ship2bill->read && $user->rights->expedition->lire',			                // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules

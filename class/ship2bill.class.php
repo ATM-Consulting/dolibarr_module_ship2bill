@@ -2,7 +2,7 @@
 
 class Ship2Bill {
 	
-	function generate_factures($TExpedition, $dateFact=0) 
+	function generate_factures($TExpedition, $dateFact=0, $show_trace = true) 
 	{
 		global $conf, $langs, $db, $user;
 	
@@ -51,6 +51,9 @@ class Ship2Bill {
 			
 			// Pour chaque id expédition
 			foreach($Tid_exp as $id_exp => $val) {
+			
+				if($show_trace) echo $id_exp.'...';
+				
 				// Chargement de l'expédition
 				$exp = new Expedition($db);
 				$exp->fetch($id_exp);
@@ -87,7 +90,7 @@ class Ship2Bill {
 				
 			// Validation de la facture
 			if($conf->global->SHIP2BILL_VALID_INVOICE) $f->validate($user, '', $conf->global->SHIP2BILL_WARHOUSE_TO_USE);
-			
+			if($show_trace){ echo $f->id.'|';flush(); }
 			// Génération du PDF
 			if(!empty($conf->global->SHIP2BILL_GENERATE_INVOICE_PDF)) $TFiles[] = $this->facture_generate_pdf($f, $hidedetails, $hidedesc, $hideref);
 		}
@@ -400,7 +403,9 @@ class Ship2Bill {
 			$outputlangs = new Translate("",$conf);
 			$outputlangs->setDefaultLang($newlang);
 		}
-		$result=facture_pdf_create($db, $f, $f->modelpdf, $outputlangs, $hidedetails, $hidedesc, $hideref);
+		
+		if ((float) DOL_VERSION <= 4.0)	$result=facture_pdf_create($db, $f, $f->modelpdf, $outputlangs, $hidedetails, $hidedesc, $hideref);
+		else $result = $f->generateDocument($f->modelpdf, $outputlangs, $hidedetails, $hidedesc, $hideref);
 		
 		if($result > 0) {
 			$objectref = dol_sanitizeFileName($f->ref);
