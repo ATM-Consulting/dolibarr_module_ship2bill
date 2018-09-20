@@ -20,7 +20,7 @@ class Ship2Bill {
 			dol_include_once('/subtotal/class/actions_subtotal.class.php');
 			dol_include_once('/subtotal/class/subtotal.class.php');
 			$langs->load("subtotal@subtotal");
-			$sub = new ActionsSubtotal();
+			$sub = new ActionsSubtotal($db);
 		}
 		
 		// Option pour la génération PDF
@@ -205,6 +205,9 @@ class Ship2Bill {
 		$f->date = $dateFact;
 		$f->type = 0;
 		$f->cond_reglement_id = (!empty($f->thirdparty->cond_reglement_id) ? $f->thirdparty->cond_reglement_id : 1);
+		$f->setPaymentTerms($f->cond_reglement_id);
+		$date_lim = $f->calculate_date_lim_reglement();
+		$f->date_lim_reglement = $date_lim;
 		$f->mode_reglement_id = $f->thirdparty->mode_reglement_id;
 		$f->modelpdf = !empty($conf->global->SHIP2BILL_GENERATE_INVOICE_PDF) ? $conf->global->SHIP2BILL_GENERATE_INVOICE_PDF : 'crabe';
 		$f->statut = 0;
