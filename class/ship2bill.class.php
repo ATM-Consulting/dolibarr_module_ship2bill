@@ -78,7 +78,8 @@ class Ship2Bill {
 				$this->facture_add_subtotal($f, $sub);
 				// Lien avec la facture
 				$f->add_object_linked('shipping', $exp->id);
-								
+				// Ajout des contacts facturation provenant de l'expé
+				$this->facture_add_shipping_contacts($f, $exp);
 				// Clôture de l'expédition
 				if($conf->global->SHIP2BILL_CLOSE_SHIPMENT) $exp->set_billed();
 			}
@@ -393,7 +394,17 @@ class Ship2Bill {
 			}
 		}
 	}
-	
+
+	function facture_add_shipping_contacts(&$f, &$exp) {
+		$exp->fetch_origin();
+		$TContactsFacturation = $exp->commande->liste_contact(-1, 'external', 0, 'BILLING');
+		if(!empty($TContactsFacturation)) {
+			foreach($TContactsFacturation as &$TData) {
+				$f->add_contact($TData['id'], 60);
+			}
+		}
+	}
+
 	function facture_generate_pdf(&$f, $hidedetails, $hidedesc, $hideref) {
 		global $conf, $langs, $db;
 		
