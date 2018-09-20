@@ -495,7 +495,7 @@ if ($resql)
 
 			$('#pop-wait').dialog({
 				'modal':true
-				,title:"<?php echo $langs->trans('GenerationInProgress') ?>"
+				,title:"<?php echo $langs->transnoentities('GenerationInProgress') ?>"
 				,open: function(event, ui) {
 			        $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
 			    }
