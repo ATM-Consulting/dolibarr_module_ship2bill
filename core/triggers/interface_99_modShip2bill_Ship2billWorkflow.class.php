@@ -155,6 +155,11 @@ class InterfaceShip2billWorkflow
 					}
 				}
 			}
+		}else if($action == 'LINEBILL_DELETE'){
+			$res = $object->deleteObjectLinked();
+		}else if($action == 'LINEBILL_INSERT'){
+			if($object->origin=='shipping') $object->add_object_linked($object->origin,$object->origin_ids);
+			
 		}
 
         return 0;
