@@ -158,7 +158,15 @@ class InterfaceShip2billWorkflow
 		}else if($action == 'LINEBILL_DELETE'){
 			$res = $object->deleteObjectLinked();
 		}else if($action == 'LINEBILL_INSERT'){
-			if($object->origin=='shipping') $object->add_object_linked($object->origin,$object->origin_ids);
+			if(($object->origin=='shipping') && !empty($object->origin_id)){
+				dol_include_once('/expedition/class/expedition.class.php');
+				$shippingline = new ExpeditionLigne($db);
+				$shippingline->fetch($object->origin_id);
+				if(!empty($shippingline->fk_expedition))
+					$object->add_object_linked($object->origin,$shippingline->fk_expedition);
+				
+			}
+			
 			
 		}
 

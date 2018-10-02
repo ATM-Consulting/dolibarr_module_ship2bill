@@ -389,7 +389,7 @@ class pdf_crabe_shipping extends ModelePDFFactures
 				}
 				if ($notetoshow)
 				{
-					$tab_top = 88 + $height_incoterms;
+					$tab_top += $height_incoterms; //TODO NOTE PUBLIC
 
 					$pdf->SetFont('','', $default_font_size - 1);
 					$pdf->writeHTMLCell(190, 3, $this->posxdesc-1, $tab_top, dol_htmlentitiesbr($notetoshow), 0, 1);
@@ -509,8 +509,8 @@ class pdf_crabe_shipping extends ModelePDFFactures
 					$object->lines[$i]->fetchObjectLinked();
 					if (!empty($object->lines[$i]->linkedObjects['shipping']))
 					{
+						$shipping =  array_shift($object->lines[$i]->linkedObjects['shipping']);
 						
-						$shipping =  array_shift($object->linkedObjects['shipping']);
 						$shipping_content = $shipping->ref.' du '.date('d/m/Y', $shipping->date_delivery);
 						
 					}
