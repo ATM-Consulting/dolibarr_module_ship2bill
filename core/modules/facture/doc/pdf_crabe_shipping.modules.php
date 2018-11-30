@@ -504,20 +504,33 @@ class pdf_crabe_shipping extends ModelePDFFactures
 					
 					
 					// Shipping
-					
+					$object->fetchObjectLinked();
 					$shipping_content = '';
 					$object->lines[$i]->fetchObjectLinked();
-					if (!empty($object->lines[$i]->linkedObjects['shipping']))
-					{
-						$shipping =  array_shift($object->lines[$i]->linkedObjects['shipping']);
-						
-						$shipping_content = $shipping->ref.' du '.date('d/m/Y', $shipping->date_delivery);
-						
+					if(!empty($object->linkedObjects['shipping'])){
+						if(count($object->linkedObjects['shipping']) == 1){
+							$shipping =  array_shift($object->linkedObjects['shipping']);
+							$shipping_content = $shipping->ref;
+							if(!empty($shipping->date_delivery))$shipping_content .=' du '.date('d/m/Y', $shipping->date_delivery);
+						}else {
+							$object->lines[$i]->fetchObjectLinked();
+							if (!empty($object->lines[$i]->linkedObjects['shipping']))
+							{
+								$shipping =  array_shift($object->lines[$i]->linkedObjects['shipping']);
+								$shipping_content = $shipping->ref;
+								if(!empty($shipping->date_delivery))$shipping_content .=' du '.date('d/m/Y', $shipping->date_delivery);
+
+							}
+						}
 					}
 					
+						
+					
+					
+					
 
-					$pdf->SetXY($this->posxshipping-5, $curY);
-					$pdf->MultiCell($this->posxtva-$this->posxshipping+4, 3, $shipping_content, 0, 'R');
+					$pdf->SetXY($this->posxshipping-1, $curY);
+					$pdf->MultiCell($this->posxtva-$this->posxshipping+1, 3, $shipping_content, 0, 'C');
 					
 
 					// VAT Rate
@@ -1411,7 +1424,7 @@ class pdf_crabe_shipping extends ModelePDFFactures
 			$pdf->line($this->marge_gauche, $tab_top+5, $this->page_largeur-$this->marge_droite, $tab_top+5);	// line prend une position y en 2eme param et 4eme param
 
 			$pdf->SetXY($this->posxdesc-1, $tab_top+1);
-			$pdf->MultiCell(108,2, $outputlangs->transnoentities("Designation"),'','L');
+			$pdf->MultiCell(108,2, $outputlangs->transnoentities("Code - Désignation"),'','L');
 		}
 
 		if (! empty($conf->global->MAIN_GENERATE_INVOICES_WITH_PICTURE))
@@ -1680,13 +1693,13 @@ class pdf_crabe_shipping extends ModelePDFFactures
 			$pdf->MultiCell($w, 3, $outputlangs->transnoentities("DateDue")." : " . dol_print_date($object->date_lim_reglement,"day",false,$outputlangs,true), '', 'R');
 		}
 
-		if ($object->thirdparty->code_client)
-		{
-			$posy+=3;
-			$pdf->SetXY($posx,$posy);
-			$pdf->SetTextColor(0,0,60);
-			$pdf->MultiCell($w, 3, $outputlangs->transnoentities("CustomerCode")." : " . $outputlangs->transnoentities($object->thirdparty->code_client), '', 'R');
-		}
+//		if ($object->thirdparty->code_client)
+//		{
+//			$posy+=3;
+//			$pdf->SetXY($posx,$posy);
+//			$pdf->SetTextColor(0,0,60);
+//			$pdf->MultiCell($w, 3, $outputlangs->transnoentities("CustomerCode")." : " . $outputlangs->transnoentities($object->thirdparty->code_client), '', 'R');
+//		}
 
 		// Get contact
 		if (!empty($conf->global->DOC_SHOW_FIRST_SALES_REP))
@@ -1708,7 +1721,7 @@ class pdf_crabe_shipping extends ModelePDFFactures
 		$top_shift = 0;
 		// Show list of linked objects
 		$current_y = $pdf->getY();
-		$posy = pdf_writeLinkedObjects($pdf, $object, $outputlangs, $posx, $posy, $w, 3, 'R', $default_font_size);
+		$posy = $this->pdf_writeLinkedObjectsCustom($pdf, $object, $outputlangs, $posx, $posy, $w, 3, 'R', $default_font_size);
 		if ($current_y < $pdf->getY())
 		{
 			$top_shift = $pdf->getY() - $current_y;
@@ -1820,5 +1833,126 @@ class pdf_crabe_shipping extends ModelePDFFactures
 		$showdetails=$conf->global->MAIN_GENERATE_DOCUMENTS_SHOW_FOOT_DETAILS;
 		return pdf_pagefoot($pdf,$outputlangs,'INVOICE_FREE_TEXT',$this->emetteur,$this->marge_basse,$this->marge_gauche,$this->page_hauteur,$object,$showdetails,$hidefreetext);
 	}
+	
+	
+	
+	function pdf_writeLinkedObjectsCustom(&$pdf,$object,$outputlangs,$posx,$posy,$w,$h,$align,$default_font_size)
+	{
+		$linkedobjects = $this->pdf_getLinkedObjectsCustom($object,$outputlangs);
+		
+		if (! empty($linkedobjects))
+		{
+			foreach($linkedobjects as $linkedobject)
+			{
+				$reftoshow = $linkedobject["ref_title"].' : '.$linkedobject["ref_value"];
+				if (! empty($linkedobject["date_value"]))
+				{
+					$reftoshow .= ' / '.$linkedobject["date_value"];
+				}
+
+				$posy+=3;
+				$pdf->SetXY($posx,$posy);
+				$pdf->SetFont('','', $default_font_size - 2);
+				$pdf->MultiCell($w, $h, $reftoshow, '', $align);
+			}
+		}
+
+		return $pdf->getY();
+	}
+	function pdf_getLinkedObjectsCustom($object,$outputlangs)
+{
+	global $hookmanager;
+
+	$linkedobjects=array();
+
+	$object->fetchObjectLinked();
+
+	foreach($object->linkedObjects as $objecttype => $objects)
+	{
+	    if ($objecttype == 'facture')
+	    {
+	       // For invoice, we don't want to have a reference line on document. Image we are using recuring invoice, we will have a line longer than document width.
+	    }
+	    elseif ($objecttype == 'propal' || $objecttype == 'supplier_proposal')
+		{
+			$outputlangs->load('propal');
+
+			foreach($objects as $elementobject)
+			{
+				$linkedobjects[$objecttype]['ref_title'] = $outputlangs->transnoentities("RefProposal");
+				$linkedobjects[$objecttype]['ref_value'] = $outputlangs->transnoentities($elementobject->ref);
+				$linkedobjects[$objecttype]['date_title'] = $outputlangs->transnoentities("DatePropal");
+				$linkedobjects[$objecttype]['date_value'] = dol_print_date($elementobject->date,'day','',$outputlangs);
+			}
+		}
+		else if ($objecttype == 'commande' || $objecttype == 'supplier_order')
+		{
+			$outputlangs->load('orders');
+			foreach($objects as $elementobject)
+			{
+				$linkedobjects[$objecttype]['ref_title'] = $outputlangs->transnoentities("RefOrder");
+				$linkedobjects[$objecttype]['ref_value'] = $outputlangs->transnoentities($elementobject->ref) . ($elementobject->ref_client ? ' ('.$elementobject->ref_client.')' : '') . ($elementobject->ref_supplier ? ' ('.$elementobject->ref_supplier.')' : '');
+				$linkedobjects[$objecttype]['date_title'] = $outputlangs->transnoentities("OrderDate");
+				$linkedobjects[$objecttype]['date_value'] = dol_print_date($elementobject->date,'day','',$outputlangs);
+			}
+		}
+		else if ($objecttype == 'contrat')
+		{
+			$outputlangs->load('contracts');
+			foreach($objects as $elementobject)
+			{
+				$linkedobjects[$objecttype]['ref_title'] = $outputlangs->transnoentities("RefContract");
+				$linkedobjects[$objecttype]['ref_value'] = $outputlangs->transnoentities($elementobject->ref);
+				$linkedobjects[$objecttype]['date_title'] = $outputlangs->transnoentities("DateContract");
+				$linkedobjects[$objecttype]['date_value'] = dol_print_date($elementobject->date_contrat,'day','',$outputlangs);
+			}
+		}
+		else if ($objecttype == 'shipping')
+		{
+			$outputlangs->load('orders');
+			$outputlangs->load('sendings');
+			
+			foreach($objects as $x => $elementobject)
+			{
+			    $order=null;
+			    // We concat this record info into fields xxx_value. title is overwrote.
+			    if (empty($object->linkedObjects['commande']) && $object->element != 'commande')	// There is not already a link to order and object is not the order, so we show also info with order
+			    {
+			        $elementobject->fetchObjectLinked();
+			        if (! empty($elementobject->linkedObjects['commande'])) $order = reset($elementobject->linkedObjects['commande']);
+			    }
+//			    if (! is_object($order))
+//			    {
+//			        $linkedobjects[$objecttype]['ref_title'] = $outputlangs->transnoentities("RefSending");
+//			        if (! empty($linkedobjects[$objecttype]['ref_value'])) $linkedobjects[$objecttype]['ref_value'].=' / ';
+//			        $linkedobjects[$objecttype]['ref_value'].= $outputlangs->transnoentities($elementobject->ref);
+//			        //$linkedobjects[$objecttype]['date_title'] = $outputlangs->transnoentities("DateShipment");
+//			        //if (! empty($linkedobjects[$objecttype]['date_value'])) $linkedobjects[$objecttype]['date_value'].=' / ';
+//			        //$linkedobjects[$objecttype]['date_value'].= dol_print_date($elementobject->date_delivery,'day','',$outputlangs);
+//			    }
+			     if (is_object($order))
+			    {
+			        $linkedobjects[$objecttype]['ref_title'] = $outputlangs->transnoentities("RefOrder") ;
+			        if (empty($linkedobjects[$objecttype]['ref_value'])) $linkedobjects[$objecttype]['ref_value'] = $outputlangs->convToOutputCharset($order->ref) . ($order->ref_client ? ' ('.$order->ref_client.')' : '');
+			        else $linkedobjects[$objecttype]['ref_value'].= ' / ' . $outputlangs->convToOutputCharset($order->ref) . ($order->ref_client ? ' ('.$order->ref_client.')' : '');
+			        //$linkedobjects[$objecttype]['date_title'] = $outputlangs->transnoentities("OrderDate") . ($elementobject->date_delivery ? ' / ' . $outputlangs->transnoentities("DateShipment") : '');
+			        //if (empty($linkedobjects[$objecttype]['date_value'])) $linkedobjects[$objecttype]['date_value'] = dol_print_date($order->date,'day','',$outputlangs);
+			        //$linkedobjects[$objecttype]['date_value'].= ($elementobject->date_delivery ? ' / ' . dol_print_date($elementobject->date_delivery,'day','',$outputlangs) : '');
+			    }
+			}
+		}
+	}
+
+	// For add external linked objects
+	if (is_object($hookmanager))
+	{
+		$parameters = array('linkedobjects' => $linkedobjects, 'outputlangs'=>$outputlangs);
+		$action='';
+		$hookmanager->executeHooks('pdf_getLinkedObjects',$parameters,$object,$action);    // Note that $action and $object may have been modified by some hooks
+		if (! empty($hookmanager->resArray)) $linkedobjects = $hookmanager->resArray;
+	}
+
+	return $linkedobjects;
+}
 
 }
