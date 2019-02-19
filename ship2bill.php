@@ -61,9 +61,11 @@ $diroutputpdf=$conf->ship2bill->multidir_output[$conf->entity];
 if (!empty($conf->global->SHIP2BILL_LIST_LENGTH)) $conf->liste_limit = $conf->global->SHIP2BILL_LIST_LENGTH;
 
 if ($page == -1) { $page = 0; }
-$offset = $conf->liste_limit * $page;
-$pageprev = $page - 1;
-$pagenext = $page + 1;
+if(!empty($page)) {
+    $offset = $conf->liste_limit * $page;
+    $pageprev = $page - 1;
+    $pagenext = $page + 1;
+}
 $limit = $conf->liste_limit;
 if (! $sortfield) $sortfield="e.ref";
 if (! $sortorder) $sortorder="DESC";

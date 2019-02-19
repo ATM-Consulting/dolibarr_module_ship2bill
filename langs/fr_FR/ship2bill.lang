@@ -35,4 +35,4 @@ StateOrder=État commande
 Stateshipment=État expédition
 SHIP2BILL_LIST_LENGTH=Nombre d'expéditions à afficher dans la liste des expéditions facturables <br> (laisser vide pour utiliser la configuration de dolibarr)
 
-SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD=La facturation des expéditions multiples est géré sur la fiche du tiers <br>(au lieu d'être géré au moment de la facturation en masse)
+SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD=La facturation des expéditions multiples est géré sur la fiche du tiers
