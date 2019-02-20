@@ -7,9 +7,9 @@ class Ship2Bill {
 		global $conf, $langs, $db, $user;
 	
 		// Inclusion des classes nécessaires
-		dol_include_once('/commande/class/commande.class.php');
-		dol_include_once('/compta/facture/class/facture.class.php');
-		dol_include_once('/core/modules/facture/modules_facture.php');
+        dol_include_once('/commande/class/commande.class.php');
+        dol_include_once('/compta/facture/class/facture.class.php');
+        dol_include_once('/core/modules/facture/modules_facture.php');
 		
 		// Utilisation du module livraison
 		if($conf->livraison_bon->enabled) {
@@ -42,9 +42,15 @@ class Ship2Bill {
 		foreach($TExpedition as $id_client => $Tid_exp)
 		{
 			if (empty($Tid_exp)) continue;
-			
+			if(!empty($id_client) && !empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD)){
+                dol_include_once('/societe/class/societe.class.php');
+                $soc = new Societe($db);
+                $soc->fetch($id_client);
+            }
 			// Création d'une facture regroupant plusieurs expéditions (par défaut)
-			if(empty($conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT)) {
+			if(empty($conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT) &&
+                (empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD) || (!empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD) && empty($soc->array_options['options_s2b_1bill_1shipment'])))
+            ) {
 				$f = $this->facture_create($id_client, $dateFact);
 				$nbFacture++;
 			}
@@ -59,7 +65,7 @@ class Ship2Bill {
 				$exp->fetch($id_exp);
 				
 				// Création d'une facture par expédition si option activée
-				if(!empty($conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT)) {
+				if(!empty($conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT) || ( !empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD) && !empty($soc->array_options['options_s2b_1bill_1shipment']))) {
 					$f = $this->facture_create($id_client, $dateFact);
 					$f->note_public = $exp->note_public;
 					$f->note_private = $exp->note_private;
