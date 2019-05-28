@@ -84,7 +84,8 @@ class Ship2Bill {
 				$this->facture_add_subtotal($f, $sub);
 				// Lien avec la facture
 				$f->add_object_linked('shipping', $exp->id);
-								
+				// Ajout des contacts facturation provenant de l'expé
+				$this->facture_add_shipping_contacts($f, $exp);
 				// Clôture de l'expédition
 				if($conf->global->SHIP2BILL_CLOSE_SHIPMENT) $exp->set_billed();
 			}
@@ -399,7 +400,27 @@ class Ship2Bill {
 			}
 		}
 	}
-	
+
+	function facture_add_shipping_contacts(&$f, &$exp) {
+
+		global $db;
+
+		$exp->fetch_origin();
+
+		$sqlcontact = "SELECT ctc.code, ctc.source, ec.fk_socpeople FROM ".MAIN_DB_PREFIX."element_contact as ec, ".MAIN_DB_PREFIX."c_type_contact as ctc";
+		$sqlcontact.= " WHERE element_id = ".$exp->commande->id." AND ec.fk_c_type_contact = ctc.rowid AND ctc.element = 'commande'";
+
+		$resqlcontact = $db->query($sqlcontact);
+		if ($resqlcontact)
+		{
+		    while($objcontact = $db->fetch_object($resqlcontact))
+		    {
+		        $f->add_contact($objcontact->fk_socpeople, $objcontact->code, $objcontact->source);
+		    }
+		}
+
+	}
+
 	function facture_generate_pdf(&$f, $hidedetails, $hidedesc, $hideref) {
 		global $conf, $langs, $db;
 		
