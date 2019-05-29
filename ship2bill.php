@@ -256,7 +256,6 @@ if ($search_societe) $sql2 .= natural_search('s.nom', $search_societe);
 if ($search_status != -1 && $search_status != '')  $sql2 .= " AND e.fk_statut = ".$search_status;
 
 $db->query("CREATE TEMPORARY TABLE ".MAIN_DB_PREFIX."ship2bill_view ".$sql." UNION ".$sql2 );
-
 $sortfieldClean = $sortfield;
 if(strpos($sortfieldClean,'.')!==false) {
 	list($dummy,$sortfieldClean) = explode('.', $sortfield);
@@ -275,13 +274,13 @@ if ($resql)
 	$colspan = 7;
 
 	$param="&amp;socid=$socid";
+
 	if ($search_ref_exp) $param.= "&amp;search_ref_exp=".$search_ref_exp;
 	if ($search_ref_client) $param.= "&amp;search_ref_client=".$search_ref_client;
 	if ($search_ref_cde) $param.= "&amp;search_ref_cde=".$search_ref_cde;
 	if ($search_ref_liv) $param.= "&amp;search_ref_liv=".$search_ref_liv;
 	if ($search_societe) $param.= "&amp;search_societe=".$search_societe;
 	if ($search_status)  $param.= "&amp;search_status=".$search_status;
-
 	print_barre_liste($langs->trans('ShipmentToBill').(!empty($conf->global->SHIP2BILL_GET_SERVICES_FROM_ORDER) ? ' ('.$langs->trans('TotalHTShippingAndTotalHTBillCanBeDifferent').')' : ''), $page, "ship2bill.php",$param,$sortfield,$sortorder,'',$num);
 
 	print '<form name="formAfficheListe" id="formShip2Bill" method="POST" action="ship2bill.php">';
@@ -406,8 +405,8 @@ if ($resql)
 		}*/
 		print "</td>\n";
 		if($conf->livraison_bon->enabled) {
-			$shipment->fetchObjectLinked($shipment->id,$shipment->element);
-			$receiving=(! empty($shipment->linkedObjects['delivery'][0])?$shipment->linkedObjects['delivery'][0]:'');
+            $shipment->fetchObjectLinked($shipment->id,$shipment->element);
+            $receiving=(! empty($shipment->linkedObjects['delivery'][key($shipment->linkedObjects['delivery'])])?$shipment->linkedObjects['delivery'][key($shipment->linkedObjects['delivery'])]:'');
 
 			// Ref
 			print '<td>';
