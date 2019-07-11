@@ -233,7 +233,7 @@ class modShip2bill extends DolibarrModules
         // extrafields tiers
         $res = $extrafields->addExtraField('s2b_1bill_1shipment', 'Ne pas regrouper plusieurs expéditions dans une facture lors de la génération en masse', 'boolean', 0, 0, 'thirdparty', 0, 0, '', '', 1, '', 0);
 
-        return $this->_init($sql, $options);
+		return $this->_init($sql, $options);
 	}
 
 	/**
