@@ -43,7 +43,7 @@ class Ship2Bill {
 		{
 			if (empty($Tid_exp)) continue;
 
-			$incoterms_updated=false;
+			if(!empty($conf->incoterm->enabled)) $incoterms_updated=false;
 
 			// Création d'une facture regroupant plusieurs expéditions (par défaut)
 			if(empty($conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT)) {
@@ -69,7 +69,7 @@ class Ship2Bill {
 					$nbFacture++;
 				}
 
-				if(!$incoterms_updated && !empty($exp->fk_incoterms)) {
+				if(!empty($conf->incoterm->enabled) && !$incoterms_updated && !empty($exp->fk_incoterms)) {
 					$f->setIncoterms($exp->fk_incoterms, $exp->location_incoterms);
 					if(empty($conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT)) $incoterms_updated=true;
 				}
