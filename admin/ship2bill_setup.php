@@ -2,7 +2,7 @@
 
 $res=@include("../../main.inc.php");						// For root directory
 if (! $res) $res=@include("../../../main.inc.php");			// For "custom" directory
-
+dol_include_once('/ship2bill/lib/ship2bill.lib.php');
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 
 $langs->load("admin");
@@ -31,13 +31,17 @@ if($action == 'set_SHIP2BILL_LIST_LENGTH'){
         dol_print_error($db);
     }
 }
-
 if (preg_match('/set_(.*)/',$action,$reg))
 {
 	$code=$reg[1];
-	if (dolibarr_set_const($db, $code, GETPOST($code), 'chaine', 0, '', $conf->entity) > 0)
-	{
-		header("Location: ".$_SERVER["PHP_SELF"]);
+    $codeValue = GETPOST($code);
+	if (dolibarr_set_const($db, $code, $codeValue, 'chaine', 0, '', $conf->entity) > 0)
+    {
+        if($code === 'SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD') {
+            if(!empty($codeValue)) setExtraVisibility($codeValue, 's2b_1bill_1shipment', 'societe');
+            else setExtraVisibility($codeValue, 's2b_1bill_1shipment', 'societe');
+        }
+        header("Location: ".$_SERVER["PHP_SELF"]);
 		exit;
 	}
 	else
@@ -281,6 +285,19 @@ print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
 print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 print '<input type="hidden" name="action" value="set_SHIP2BILL_LIST_LENGTH">';
 print '<input type="text" name="SHIP2BILL_LIST_LENGTH" size="5" '.(!empty($conf->global->SHIP2BILL_LIST_LENGTH) ? 'value="' .$conf->global->SHIP2BILL_LIST_LENGTH . '"' : '').'>';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="300">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD">';
+print $form->selectyesno("SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD",$conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD,1);
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 print '</form>';
 print '</td></tr>';
