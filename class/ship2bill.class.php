@@ -47,6 +47,9 @@ class Ship2Bill {
                 $soc = new Societe($db);
                 $soc->fetch($id_client);
             }
+
+			if(!empty($conf->incoterm->enabled)) $incoterms_updated=false;
+
 			// Création d'une facture regroupant plusieurs expéditions (par défaut)
 			if(empty($conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT) &&
                 (empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD) || (!empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD) && empty($soc->array_options['options_s2b_1bill_1shipment'])))
@@ -73,6 +76,11 @@ class Ship2Bill {
 					$nbFacture++;
 				}
 				
+				if(!empty($conf->incoterm->enabled) && !$incoterms_updated && !empty($exp->fk_incoterms)) {
+					$f->setIncoterms($exp->fk_incoterms, $exp->location_incoterms);
+					if(empty($conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT)) $incoterms_updated=true;
+				}
+
 				// Ajout pour éviter déclenchement d'autres modules, par exemple ecotaxdee
 				$f->context = array('origin'=>'shipping', 'origin_id'=>$id_exp);
 
