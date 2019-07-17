@@ -37,12 +37,14 @@ class Ship2Bill {
 		
 		//unset les id expédition qui sont déjà liés à une facture
 		$this->_clearTExpedition($db, $TExpedition);
-		
+
 		// Pour chaque id client
 		foreach($TExpedition as $id_client => $Tid_exp)
 		{
 			if (empty($Tid_exp)) continue;
-			
+
+			$incoterms_updated=false;
+
 			// Création d'une facture regroupant plusieurs expéditions (par défaut)
 			if(empty($conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT)) {
 				$f = $this->facture_create($id_client, $dateFact);
@@ -66,7 +68,12 @@ class Ship2Bill {
 					$f->update($user);
 					$nbFacture++;
 				}
-				
+
+				if(!$incoterms_updated && !empty($exp->fk_incoterms)) {
+					$f->setIncoterms($exp->fk_incoterms, $exp->location_incoterms);
+					if(empty($conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT)) $incoterms_updated=true;
+				}
+
 				// Ajout pour éviter déclenchement d'autres modules, par exemple ecotaxdee
 				$f->context = array('origin'=>'shipping', 'origin_id'=>$id_exp);
 
