@@ -47,6 +47,10 @@ $hookmanager->initHooks(array('invoicecard'));
 
 $action = GETPOST('action','alpha');
 $search_ref_exp = GETPOST("search_ref_exp");
+$search_start_delivery_date = GETPOST('search_start_delivery_date');
+$search_end_delivery_date = GETPOST('search_end_delivery_date');
+if(!empty($search_start_delivery_date))$tmp_date_start = str_replace('/', '-', $search_start_delivery_date);
+if(!empty($search_end_delivery_date))$tmp_date_end = str_replace('/', '-', $search_end_delivery_date);
 $search_ref_client = GETPOST("search_ref_client");
 $search_ref_cde = GETPOST("search_ref_cde");
 $search_ref_liv = GETPOST('search_ref_liv');
@@ -145,7 +149,10 @@ else if($action=='confirm_archive_files' && $confirm == 'yes') {
 // Do we click on purge search criteria ?
 if (GETPOST("button_removefilter_x"))
 {
+
     $search_ref_exp='';
+    $search_start_delivery_date='';
+    $search_end_delivery_date='';
 	$search_ref_client='';
 	$search_ref_cde='';
     $search_ref_liv='';
@@ -216,7 +223,16 @@ if ($search_ref_liv) $sql .= natural_search('l.ref', $search_ref_liv);
 if ($search_societe) $sql .= natural_search('s.nom', $search_societe);
 if ($search_status != -1 && $search_status != '')  $sql .= " AND e.fk_statut = ".$search_status;
 if ($search_order_statut != -4 && $search_order_statut != -1 && $search_order_statut != '')  $sql .= " AND c.fk_statut = ".intval($search_order_statut) ;
+if(!empty($search_start_delivery_date) && !empty($search_end_delivery_date)) {
 
+	$sql .= " AND e.date_delivery BETWEEN '".date('Y-m-d',strtotime($tmp_date_start))."' AND '".date('Y-m-d',strtotime($tmp_date_end))."'";
+}
+else if(!empty($search_start_delivery_date) && empty($search_end_delivery_date)) {
+	$sql .= " AND DATE(e.date_delivery) >= '".date('Y-m-d',strtotime($tmp_date_start))."'";
+}
+else if(!empty($search_end_delivery_date) && empty($search_start_delivery_date)) {
+	$sql .= " AND DATE(e.date_delivery) <= '".date('Y-m-d',strtotime($tmp_date_end))."'";
+}
 
 
 $sql2 = "SELECT e.rowid, e.ref, e.date_delivery as date_expedition, l.date_delivery as date_livraison, e.fk_statut
@@ -256,6 +272,16 @@ if ($search_ref_cde) $sql2 .= natural_search('c.ref', $search_ref_cde);
 if ($search_ref_liv) $sql2 .= natural_search('l.ref', $search_ref_liv);
 if ($search_societe) $sql2 .= natural_search('s.nom', $search_societe);
 if ($search_status != -1 && $search_status != '')  $sql2 .= " AND e.fk_statut = ".$search_status;
+if(!empty($search_start_delivery_date) && !empty($search_end_delivery_date)) {
+
+	$sql2 .= " AND e.date_delivery BETWEEN '".date('Y-m-d',strtotime($tmp_date_start))."' AND '".date('Y-m-d',strtotime($tmp_date_end))."'";
+}
+else if(!empty($search_start_delivery_date) && empty($search_end_delivery_date)) {
+	$sql2 .= " AND DATE(e.date_delivery) >= '".date('Y-m-d',strtotime($tmp_date_start))."'";
+}
+else if(!empty($search_end_delivery_date) && empty($search_start_delivery_date)) {
+	$sql2 .= " AND DATE(e.date_delivery) <= '".date('Y-m-d',strtotime($tmp_date_end))."'";
+}
 
 $db->query("CREATE TEMPORARY TABLE ".MAIN_DB_PREFIX."ship2bill_view ".$sql." UNION ".$sql2 );
 $sortfieldClean = $sortfield;
@@ -283,6 +309,8 @@ if ($resql)
 	if ($search_ref_liv) $param.= "&amp;search_ref_liv=".$search_ref_liv;
 	if ($search_societe) $param.= "&amp;search_societe=".$search_societe;
 	if ($search_status)  $param.= "&amp;search_status=".$search_status;
+	if ($search_start_delivery_date)  $param.= "&amp;search_start_delivery_date=".$search_start_delivery_date;
+	if ($search_end_delivery_date)  $param.= "&amp;search_end_delivery_date=".$search_end_delivery_date;
 	print_barre_liste($langs->trans('ShipmentToBill').(!empty($conf->global->SHIP2BILL_GET_SERVICES_FROM_ORDER) ? ' ('.$langs->trans('TotalHTShippingAndTotalHTBillCanBeDifferent').')' : ''), $page, "ship2bill.php",$param,$sortfield,$sortorder,'',$num);
 
 	print '<form name="formAfficheListe" id="formShip2Bill" method="POST" action="ship2bill.php">';
@@ -320,7 +348,8 @@ if ($resql)
 	print '<td class="liste_titre" align="left">';
 	print '<input class="flat" type="text" size="10" name="search_societe" value="'.dol_escape_htmltag($search_societe).'">';
 	print '</td>';
-	print '<td class="liste_titre">&nbsp;</td>';
+	print '<td class="liste_titre" align="center">'.$form->selectDate(!empty($search_start_delivery_date)?strtotime($tmp_date_start):'','search_start_delivery_date',0,0,1).'
+			</br>'.$form->selectDate(!empty($search_end_delivery_date)?strtotime($tmp_date_end):'','search_end_delivery_date',0,0,1).'</td>';
 	if($conf->livraison_bon->enabled) {
 		$colspan += 2;
 		print '<td class="liste_titre">';
