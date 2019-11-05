@@ -22,7 +22,7 @@
  *      \ingroup    expedition
  *      \brief      Page to list all shipments
  */
- 
+
 require 'config.php';
 dol_include_once('/expedition/class/expedition.class.php');
 dol_include_once('/ship2bill/class/ship2bill.class.php');
@@ -88,18 +88,17 @@ if(isset($_REQUEST['subCreateBill'])){
 	} else {
 		$dateFact = dol_mktime(0, 0, 0, GETPOST('dtfactmonth'), GETPOST('dtfactday'), GETPOST('dtfactyear'));
 	}
-	
 	if(empty($TExpedition)) {
 		setEventMessage($langs->trans('NoShipmentSelected'), 'warnings');
 	} else {
 		$ship2bill = new Ship2Bill();
 		$nbFacture = $ship2bill->generate_factures($TExpedition, $dateFact,true);
-	
+
 		setEventMessage($langs->trans('InvoiceCreated', $nbFacture));
 		/*header("Location: ".dol_buildpath('/ship2bill/ship2bill.php',1));*/
-		
+
 	}
-	
+
 	exit;
 }
 
@@ -116,34 +115,34 @@ if ($action == 'remove_file')
 	else setEventMessage($langs->trans("ErrorFailToDeleteFile", GETPOST('urlfile')), 'errors');
 	$action='';
 }
-else if($action=='delete_all_pdf_files') { 
+else if($action=='delete_all_pdf_files') {
 	$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('DeleteAllFiles'), $langs->trans('ConfirmDeleteAllFiles'), 'confirm_delete_all_pdf_files', '', 'no', 1);
-		
-		
-}			
+
+
+}
 else if($action=='confirm_delete_all_pdf_files' && $confirm == 'yes') {
-		
+
 	$order = new Ship2Bill($db);
 	$order->removeAllPDFFile();
-		
+
 	setEventMessage($langs->trans("FilesWereRemoved"));
 
 
 }
 
 else if($action=='archive_files') {
-	
+
 	$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('ArchiveFiles'), $langs->trans('ConfirmArchiveFiles'), 'confirm_archive_files', '', 'no', 1);
-		
+
 }
-	
+
 else if($action=='confirm_archive_files' && $confirm == 'yes') {
-		
+
 	$order = new Ship2Bill($db);
 	$order->zipFiles();
-			
+
 }
-		
+
 
 
 // Do we click on purge search criteria ?
@@ -164,7 +163,7 @@ if (GETPOST("button_removefilter_x"))
 /*
  * View
  */
- 
+
 $companystatic=new Societe($db);
 $shipment=new Expedition($db);
 
@@ -176,10 +175,10 @@ echo $formconfirm;
 <script type="text/javascript">
 $(document).ready(function() {
 	$("#checkall").click(function() {
-		$(".checkforgen").attr('checked', true);
+		$(".checkforgen:not(:checked)").trigger('click');
 	});
 	$("#checknone").click(function() {
-		$(".checkforgen").attr('checked', false);
+        $(".checkforgen:checked").trigger('click');
 	});
 });
 </script>
@@ -413,7 +412,7 @@ if ($resql)
 		$commande->fetch($objp->cdeid); // Plus propre
 		print $commande->getNomUrl(1);
 		print "</td>\n";
-		
+
 		// Order ref client
 		print "<td>";
 		print $objp->ref_client;
@@ -452,7 +451,7 @@ if ($resql)
 
 		print '<td align="right">'.$shipment->getLibStatut(5).'</td>'."\n";
 		print '<td align="right">'.$commande->getLibStatut(5).'</td>'."\n";
-		
+
 		print '<td align="right" class="totalShipment">'.price($shipment->total_ht).'</td>';
 
 		// Sélection expé à facturer
@@ -518,7 +517,7 @@ if ($resql)
 		$f->select_date('', 'dtfact');
 		print '<input class="butAction" type="button" id="subCreateBill" name="subCreateBill" value="'.$langs->trans('CreateInvoiceButton').'"  />';
 		print '</div>';
-		
+
 		?>
 		<div id="pop-wait" style="display:none;text-align:center;"><?php echo img_picto('','ajax-loader.gif@ship2bill'); ?><br /><span class="info"></span></div>
 		<script type="text/javascript">
@@ -532,7 +531,7 @@ if ($resql)
 			    }
 		    	,closeOnEscape: false
 			});
-			
+
 			var data = $("#formShip2Bill").serialize();
 
 			$.ajax({
@@ -560,14 +559,14 @@ if ($resql)
 				//console.log(result);
 				document.location.href="<?php echo dol_buildpath('/ship2bill/ship2bill.php',1); ?>";
 			});
-			
+
 			return false;
-			
+
 		});
 		</script>
-		
-		<?php 
-		
+
+		<?php
+
 	}
 	print '</form>';
 
@@ -575,7 +574,7 @@ if ($resql)
 		print '<br><br>';
 		$formfile = new FormFile($db);
 		$formfile->show_documents('ship2bill','',$diroutputpdf,$urlsource,false,true,'',1,1,0,48,1,$param,$langs->trans("GlobalGeneratedFiles"));
-	
+
 		echo '<div class="tabsAction">';
 		echo '<a class="butAction" href="?action=archive_files">'.$langs->trans('ArchiveFiles').'</a>';
 		echo '<a class="butAction" href="?action=delete_all_pdf_files">'.$langs->trans('DeleteAllFiles').'</a>';
