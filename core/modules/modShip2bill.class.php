@@ -179,7 +179,7 @@ class modShip2bill extends DolibarrModules
 		$r=0;
 
 		$langs->load('ship2bill@ship2bill');
-		
+
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=products,fk_leftmenu=sendings',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 								'type'=>'left',			                // This is a Left menu entry
 								'titre'=>$langs->trans('Ship2BillMenu'),
@@ -222,6 +222,7 @@ class modShip2bill extends DolibarrModules
 	 */
 	function init($options='')
 	{
+		global $conf;
 		$sql = array();
 
 		$result=$this->_load_tables('/ship2bill/sql/');
@@ -232,7 +233,7 @@ class modShip2bill extends DolibarrModules
 
         // extrafields tiers
         $res = $extrafields->addExtraField('s2b_1bill_1shipment', 'Ne pas regrouper plusieurs expéditions dans une facture lors de la génération en masse', 'boolean', 0, 0, 'thirdparty', 0, 0, '', '', 1, '', 0);
-
+        $res = $extrafields->update('s2b_1bill_1shipment', 'Regroupement des expéditions dans une facture lors de la génération en masse', 'select', 0,  'thirdparty', 0, 0, 0, array('options'=>array(0 => 'Une facture par tiers', 1=> 'Une facture par expédition', 2=>'Une facture par commande')), 1, '', $conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD,'','0');
 		return $this->_init($sql, $options);
 	}
 
