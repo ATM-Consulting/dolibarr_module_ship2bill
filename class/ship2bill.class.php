@@ -234,7 +234,9 @@ class Ship2Bill {
 		}
 		
 		$f->create($user);
-		
+
+		if(empty($f->fk_account) && !empty($f->thirdparty->fk_account)) $f->setBankAccount($f->thirdparty->fk_account);
+
 		return $f;
 	}
 

@@ -161,9 +161,11 @@ class InterfaceShip2billWorkflow
 			if(($object->origin=='shipping') && !empty($object->origin_id)){
 				dol_include_once('/expedition/class/expedition.class.php');
 				$shippingline = new ExpeditionLigne($db);
-				$shippingline->fetch($object->origin_id);
-				if(!empty($shippingline->fk_expedition))
-					$object->add_object_linked($object->origin,$shippingline->fk_expedition);
+				if(method_exists($shippingline, 'fetch')) {
+					$shippingline->fetch($object->origin_id);
+					if(!empty($shippingline->fk_expedition))
+						$object->add_object_linked($object->origin,$shippingline->fk_expedition);
+				}
 				
 			}
 			
