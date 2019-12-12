@@ -79,7 +79,7 @@ class Ship2Bill {
 				// Chargement de l'expédition
 				$exp = new Expedition($db);
 				$exp->fetch($id_exp);
-				//Une facture par commande
+				//Une exped est forcément lié à une commande
 				$exp->fetchObjectLinked(0,'commande',$exp->id, 'shipping');
 				$fk_commande = reset($exp->linkedObjectsIds['commande']);
 

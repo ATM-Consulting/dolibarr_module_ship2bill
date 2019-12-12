@@ -13,6 +13,7 @@ if(!defined('INC_FROM_CRON_SCRIPT') && !defined('INC_FROM_DOLIBARR')) {
 
 }
 
+//Fonction reprise d'abricot, car module fonctionnant sans abricot
 function checkVersion(&$DoliDb, $moduleName) {
 	global $conf;
 	if(class_exists($moduleName)) {
