@@ -55,7 +55,7 @@ class modShip2bill extends DolibarrModules
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Module permettant de regrouper plusieurs expéditions en une seule facture";
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '1.5.3';
+		$this->version = '2.0.0';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
@@ -232,9 +232,55 @@ class modShip2bill extends DolibarrModules
         $extrafields = new ExtraFields($this->db);
 
         // extrafields tiers
-        $res = $extrafields->addExtraField('s2b_1bill_1shipment', 'Ne pas regrouper plusieurs expéditions dans une facture lors de la génération en masse', 'boolean', 0, 0, 'thirdparty', 0, 0, '', '', 1, '', 0);
-        $res = $extrafields->update('s2b_1bill_1shipment', 'Regroupement des expéditions dans une facture lors de la génération en masse', 'select', 0,  'thirdparty', 0, 0, 0, array('options'=>array(0 => 'Une facture par tiers', 1=> 'Une facture par expédition', 2=>'Une facture par commande')), 1, '', $conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD,'','0');
+        $res = $extrafields->addExtraField('s2b_bill_management', 'Regroupement des expéditions dans une facture lors de la génération en masse', 'select', 0, 0, 'thirdparty', 0, 0, '',  array('options'=>array(1 => 'Une facture par tiers', 2=> 'Une facture par expédition', 3=>'Une facture par commande')), 1, '',  $conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD);
+		$this->checkVersion();
 		return $this->_init($sql, $options);
+	}
+
+	function checkVersion() {
+		global $db;
+
+		$sql = "SELECT value FROM" . MAIN_DB_PREFIX . "const WHERE name='ATM_MODULE_VERSION_MODSHIP2BILL'";
+		$resql = $db->query($sql);
+		if(!empty($resql) && $db->num_rows($resql) > 0) {
+			$obj = $db->fetch_object($resql);
+			if(substr($this->version, 0, 1) >= 2 && substr($obj->value, 0, 1) < 2) $this->updateS2b_bill_management($db);
+		}
+		else { //Sinon ça veut dire qu'on est dans une version pour laquelle la const version n'existe pas (<=1.5)
+			$this->updateS2b_bill_management($db);
+		}
+
+		$this->setVersion($db, 'modShip2bill');
+	}
+
+	function updateS2b_bill_management(DoliDB $db) {
+		//On vérifie que l'extrafield qui a été remplacé existe en base
+		$sql = "SELECT rowid FROM " . MAIN_DB_PREFIX . "extrafields WHERE name LIKE 's2b_1bill_1shipment'";
+		$resql = $db->query($sql);
+		if(!empty($resql) && $db->num_rows($resql) > 0) { //Si l'extrafield existe
+
+			$sql = "UPDATE " . MAIN_DB_PREFIX . "societe_extrafields SET s2b_bill_management = 1 WHERE s2b_1bill_1shipment = 0";
+			$db->query($sql);
+			$sql = "UPDATE " . MAIN_DB_PREFIX . "societe_extrafields SET s2b_bill_management = 2 WHERE s2b_1bill_1shipment = 1";
+			$db->query($sql);
+			$extra = new ExtraFields($db);
+			$extra->delete('s2b_1bill_1shipment', 'societe');
+		}
+	}
+
+
+	function setVersion(&$DoliDb, $moduleName) {
+
+		if(class_exists($moduleName)) {
+			dol_include_once('/core/lib/admin.lib.php');
+
+			$mod = new $moduleName($DoliDb);
+
+			if(!empty($mod->version)) {
+				$version = $mod->version;
+				dolibarr_set_const($DoliDb, 'ATM_MODULE_VERSION_' . strtoupper($moduleName), $version);
+			}
+		}
 	}
 
 	/**
