@@ -38,8 +38,8 @@ if (preg_match('/set_(.*)/',$action,$reg))
 	if (dolibarr_set_const($db, $code, $codeValue, 'chaine', 0, '', $conf->entity) > 0)
     {
         if($code === 'SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD') {
-            if(!empty($codeValue)) setExtraVisibility($codeValue, 's2b_1bill_1shipment', 'societe');
-            else setExtraVisibility($codeValue, 's2b_1bill_1shipment', 'societe');
+            if(!empty($codeValue)) setExtraVisibility($codeValue, 's2b_bill_management', 'societe');
+            else setExtraVisibility($codeValue, 's2b_bill_management', 'societe');
         }
         header("Location: ".$_SERVER["PHP_SELF"]);
 		exit;

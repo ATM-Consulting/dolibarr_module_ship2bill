@@ -47,13 +47,26 @@ class Ship2Bill {
                 $soc = new Societe($db);
                 $soc->fetch($id_client);
             }
+			/*
+			 * On prépare les conditions car certaines sont répétées plusieurs fois
+			 */
+			//Une facture par tiers
+			$conditionForBillByThirdparty = ((empty($conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT) && (empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD)
+						|| (!empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD) && empty($soc->array_options['options_s2b_bill_management'])))) //Si la gestion par extrafield est activé mais que l'extrafield est vide on reprend la conf par défaut
+				|| (!empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD) && $soc->array_options['options_s2b_bill_management'] == 1));
+			//Une facture par expéd
+			$conditionForBillByShipment = (($conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT == 1 && (empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD)
+						|| (!empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD) && empty($soc->array_options['options_s2b_bill_management'])))) //Si la gestion par extrafield est activé mais que l'extrafield est vide on reprend la conf par défaut
+				|| (!empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD) && $soc->array_options['options_s2b_bill_management'] == 2));;
+			//Une facture par commande
+			$conditionForBillByOrder =(($conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT == 2 && (empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD)
+						|| (!empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD) && empty($soc->array_options['options_s2b_bill_management'])))) //Si la gestion par extrafield est activé mais que l'extrafield est vide on reprend la conf par défaut
+				|| (!empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD) && $soc->array_options['options_s2b_bill_management'] == 3));
 
 			if(!empty($conf->incoterm->enabled)) $incoterms_updated=false;
 
 			// Création d'une facture regroupant plusieurs expéditions (par défaut)
-			if(empty($conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT) && (empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD)
-					|| (!empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD) && empty($soc->array_options['options_s2b_1bill_1shipment'])))
-            ) {
+			if($conditionForBillByThirdparty) {
 				$f = $this->facture_create($id_client, $dateFact);
 				$nbFacture++;
 			}
@@ -67,35 +80,29 @@ class Ship2Bill {
 				$exp = new Expedition($db);
 				$exp->fetch($id_exp);
 				//Une facture par commande
-				if($conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT == 2 && empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD)) {
-					$exp->fetchObjectLinked(0,'commande',$exp->id, 'shipping');
-					$fk_commande = reset($exp->linkedObjectsIds['commande']);
-				}
+				$exp->fetchObjectLinked(0,'commande',$exp->id, 'shipping');
+				$fk_commande = reset($exp->linkedObjectsIds['commande']);
+
 				// Création d'une facture par expédition si option activée
 				/*
 				 * Si ce n'est pas géré par l'extrafield tiers => Si on a activé une facture par expédition OU une facture par commande mais qu'il n'y a pas encore de facture associé à la commande
 				 * Sinon on fait la même vérif mais avec l'extrafield
 				 */
-				if((empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD)
-						&& ($conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT == 1 || ($conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT == 2 && empty($TBilling[$fk_commande]))))
-					|| (!empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD) && !empty($soc->array_options['options_s2b_1bill_1shipment']))) {
+				if($conditionForBillByShipment || ($conditionForBillByOrder && empty($TBilling[$fk_commande]))) {
 					$f = $this->facture_create($id_client, $dateFact);
 					$f->note_public = $exp->note_public;
 					$f->note_private = $exp->note_private;
 					$f->update($user);
 					$nbFacture++;
-					if(empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD) && $conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT == 2){
-						$f->add_object_linked('commande', $fk_commande);
-						$TBilling[$fk_commande] = $f;
-					}
-				} else if(empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD) && $conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT == 2 && !empty($TBilling[$fk_commande])) {
+				} else if(($conditionForBillByOrder) && !empty($TBilling[$fk_commande])) {
 					//Si une facture existe déjà pour la commande on l'a reprend
 					$f = $TBilling[$fk_commande];
 				}
 
-				if(!empty($conf->incoterm->enabled) && !$incoterms_updated && !empty($exp->fk_incoterms)) {
+				if(!empty($conf->incoterm->enabled) && (!$incoterms_updated || !$f->incoterms_updated)&& !empty($exp->fk_incoterms)) {
 					$f->setIncoterms($exp->fk_incoterms, $exp->location_incoterms);
-					if(empty($conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT) || $conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT == 2) $incoterms_updated=true;
+					if($conditionForBillByThirdparty) $incoterms_updated=true;
+					else if($conditionForBillByOrder) $f->incoterms_updated=true;
 				}
 
 				// Ajout pour éviter déclenchement d'autres modules, par exemple ecotaxdee
@@ -109,10 +116,23 @@ class Ship2Bill {
 				$this->facture_add_subtotal($f, $sub);
 				// Lien avec la facture
 				$f->add_object_linked('shipping', $exp->id);
+				$f->add_object_linked('commande', $fk_commande);
 				// Ajout des contacts facturation provenant de l'expé
 				$this->facture_add_shipping_contacts($f, $exp);
 				// Clôture de l'expédition
 				if($conf->global->SHIP2BILL_CLOSE_SHIPMENT) $exp->set_billed();
+
+				if($conditionForBillByOrder) $TBilling[$fk_commande] = $f;
+
+				if($conditionForBillByShipment) {
+					if($conf->global->SHIP2BILL_VALID_INVOICE) $f->validate($user, '', $conf->global->SHIP2BILL_WARHOUSE_TO_USE);
+					if($show_trace) {
+						echo $f->id . '|';
+						flush();
+					}
+					// Génération du PDF
+					if(!empty($conf->global->SHIP2BILL_GENERATE_INVOICE_PDF)) $TFiles[] = $this->facture_generate_pdf($f, $hidedetails, $hidedesc, $hideref);
+				}
 			}
 
 			// Ajout notes sur facture si une seule expé
@@ -121,7 +141,7 @@ class Ship2Bill {
 			}
 
 			// Validation de la facture
-			if(empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD) && $conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT == 2) {
+			if($conditionForBillByOrder) {
 				foreach($TBilling as $bill) {
 					if($conf->global->SHIP2BILL_VALID_INVOICE) $bill->validate($user, '', $conf->global->SHIP2BILL_WARHOUSE_TO_USE);
 					if($show_trace) {
@@ -131,7 +151,7 @@ class Ship2Bill {
 					// Génération du PDF
 					if(!empty($conf->global->SHIP2BILL_GENERATE_INVOICE_PDF)) $TFiles[] = $this->facture_generate_pdf($bill, $hidedetails, $hidedesc, $hideref);
 				}
-			} else {
+			} else if($conditionForBillByThirdparty) {
 				if($conf->global->SHIP2BILL_VALID_INVOICE) $f->validate($user, '', $conf->global->SHIP2BILL_WARHOUSE_TO_USE);
 				if($show_trace) {
 					echo $f->id . '|';
