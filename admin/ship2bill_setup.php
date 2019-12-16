@@ -38,8 +38,8 @@ if (preg_match('/set_(.*)/',$action,$reg))
 	if (dolibarr_set_const($db, $code, $codeValue, 'chaine', 0, '', $conf->entity) > 0)
     {
         if($code === 'SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD') {
-            if(!empty($codeValue)) setExtraVisibility($codeValue, 's2b_1bill_1shipment', 'societe');
-            else setExtraVisibility($codeValue, 's2b_1bill_1shipment', 'societe');
+            if(!empty($codeValue)) setExtraVisibility($codeValue, 's2b_bill_management', 'societe');
+            else setExtraVisibility($codeValue, 's2b_bill_management', 'societe');
         }
         header("Location: ".$_SERVER["PHP_SELF"]);
 		exit;
@@ -49,7 +49,7 @@ if (preg_match('/set_(.*)/',$action,$reg))
 		dol_print_error($db);
 	}
 }
-	
+
 if (preg_match('/del_(.*)/',$action,$reg))
 {
 	$code=$reg[1];
@@ -128,16 +128,21 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">'
 print '</form>';
 print '</td></tr>';
 
-// Create one invoice per shipment
+/* Select invoice management
+ * 0 => Une facture par tiers
+ * 1 => Une facture par expédition
+ * 2 => Une facture par commande
+ */
+$TBillingType = array(0 => $langs->trans('OneBillByThirdparty'), 1 => $langs->trans('OneBillByShipment'), 2 => $langs->trans('OneBillByOrder'));
 $var=!$var;
 print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("CreateOneInvoicePerShipment").'</td>';
+print '<td>'.$langs->trans("BillingManagement").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
-print '<td align="right" width="300">';
+print '<td align="right" width="320">';
 print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
 print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 print '<input type="hidden" name="action" value="set_SHIP2BILL_INVOICE_PER_SHIPMENT">';
-print $form->selectyesno("SHIP2BILL_INVOICE_PER_SHIPMENT",$conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT,1);
+print $form->selectarray("SHIP2BILL_INVOICE_PER_SHIPMENT", $TBillingType, $conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT);
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 print '</form>';
 print '</td></tr>';
@@ -189,7 +194,7 @@ if($conf->global->SHIP2BILL_VALID_INVOICE && $conf->global->STOCK_CALCULATE_ON_B
 	// Define warehouse to use if stock movement is after invoice validation
 	dol_include_once('/product/class/html.formproduct.class.php');
 	$formproduct = new FormProduct($db);
-	
+
 	$var=!$var;
 	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("WarehouseToUseAfterInvoiceValidation").'</td>';
