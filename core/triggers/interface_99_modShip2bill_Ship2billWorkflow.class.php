@@ -116,7 +116,7 @@ class InterfaceShip2billWorkflow
         // Put here code you want to execute when a Dolibarr business events occurs.
         // Data and type of action are stored into $object and $action
         // Users
-        
+
         global $db,$conf;
 
         /*
@@ -128,16 +128,15 @@ class InterfaceShip2billWorkflow
 			dol_include_once('/expedition/class/expedition.class.php');
 			dol_include_once('/comm/class/propal.class.php');
 
-			$object->fetchObjectLinked(0,'shipping');
-
+			$object->fetchObjectLinked(0,'shipping', $object->id, 'facture');
 			if(!empty($object->linkedObjects['shipping'])){
 				foreach($object->linkedObjects['shipping'] as $expedition) {
 					// Clôturer l'expédition
 					$expedition->set_billed();
-					
+
 					// Classer facturée la commande si déjà au statut "Délivrée"
 					// Ainsi que la proposition rattachée
-					$expedition->fetchObjectLinked(0,'commande');
+					$expedition->fetchObjectLinked(0,'commande', $expedition->id, 'shipping');
 					if(!empty($expedition->linkedObjects['commande'])){
 						$commande = array_pop($expedition->linkedObjects['commande']);
 						// Lien commande / facture
@@ -166,10 +165,10 @@ class InterfaceShip2billWorkflow
 					if(!empty($shippingline->fk_expedition))
 						$object->add_object_linked($object->origin,$shippingline->fk_expedition);
 				}
-				
+
 			}
-			
-			
+
+
 		}
 
         return 0;
