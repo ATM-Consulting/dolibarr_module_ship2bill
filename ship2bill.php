@@ -437,6 +437,7 @@ if ($resql)
 		if($conf->livraison_bon->enabled) {
             $shipment->fetchObjectLinked($shipment->id,$shipment->element);
             if(!empty($shipment->linkedObjects['delivery'])) $receiving=(! empty($shipment->linkedObjects['delivery'][key($shipment->linkedObjects['delivery'])])?$shipment->linkedObjects['delivery'][key($shipment->linkedObjects['delivery'])]:'');
+            else $receiving = '';
 
 			// Ref
 			print '<td>';
