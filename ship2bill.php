@@ -324,7 +324,7 @@ if ($resql)
 	print_liste_field_titre($langs->trans("Company"),"ship2bill.php","socname", "", $param,'align="left"',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("DateDeliveryPlanned"),"ship2bill.php","date_expedition","",$param, 'align="center"',$sortfield,$sortorder);
 	if($conf->livraison_bon->enabled) {
-		print_liste_field_titre($langs->trans("DeliveryOrder"),"ship2bill.php","e.refw  ","",$param, '',$sortfield,$sortorder);
+		print_liste_field_titre($langs->trans("DeliveryOrder"),"ship2bill.php","e.ref","",$param, '',$sortfield,$sortorder);
 		print_liste_field_titre($langs->trans("DateReceived"),"ship2bill.php","e.date_expedition","",$param, 'align="center"',$sortfield,$sortorder);
 	}
 	print_liste_field_titre($langs->trans("Stateshipment"),"ship2bill.php","e.fk_statut","",$param,'align="right"',$sortfield,$sortorder);
