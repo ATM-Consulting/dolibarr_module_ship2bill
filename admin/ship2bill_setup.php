@@ -13,8 +13,8 @@ global $db;
 // Security check
 if (! $user->admin) accessforbidden();
 
-$action=GETPOST('action');
-$id=GETPOST('id');
+$action=GETPOST('action', 'alpha');
+$id=GETPOST('id', 'int');
 
 /*
  * Action
@@ -34,7 +34,7 @@ if($action == 'set_SHIP2BILL_LIST_LENGTH'){
 if (preg_match('/set_(.*)/',$action,$reg))
 {
 	$code=$reg[1];
-    $codeValue = GETPOST($code);
+    $codeValue = GETPOST($code, 'none');
 	if (dolibarr_set_const($db, $code, $codeValue, 'chaine', 0, '', $conf->entity) > 0)
     {
         if($code === 'SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD') {

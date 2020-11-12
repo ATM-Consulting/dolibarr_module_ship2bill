@@ -46,16 +46,16 @@ $result = restrictedArea($user, 'expedition');
 $hookmanager->initHooks(array('invoicecard'));
 
 $action = GETPOST('action','alpha');
-$search_ref_exp = GETPOST("search_ref_exp");
-$search_start_delivery_date = GETPOST('search_start_delivery_date');
-$search_end_delivery_date = GETPOST('search_end_delivery_date');
+$search_ref_exp = GETPOST("search_ref_exp", 'none');
+$search_start_delivery_date = GETPOST('search_start_delivery_date', 'none');
+$search_end_delivery_date = GETPOST('search_end_delivery_date', 'none');
 if(!empty($search_start_delivery_date))$tmp_date_start = str_replace('/', '-', $search_start_delivery_date);
 if(!empty($search_end_delivery_date))$tmp_date_end = str_replace('/', '-', $search_end_delivery_date);
-$search_ref_client = GETPOST("search_ref_client");
-$search_ref_cde = GETPOST("search_ref_cde");
-$search_ref_liv = GETPOST('search_ref_liv');
-$search_societe = GETPOST("search_societe");
-$search_status = GETPOST("search_status");
+$search_ref_client = GETPOST("search_ref_client", 'none');
+$search_ref_cde = GETPOST("search_ref_cde", 'none');
+$search_ref_liv = GETPOST('search_ref_liv', 'none');
+$search_societe = GETPOST("search_societe", 'none');
+$search_status = GETPOST("search_status", 'int');
 $search_order_statut=GETPOST('search_order_statut','int');
 
 $sortfield = GETPOST('sortfield','alpha');
@@ -76,17 +76,17 @@ if (! $sortorder) $sortorder="DESC";
 $limit = $conf->liste_limit;
 
 
-$confirm = GETPOST('confirm');
+$confirm = GETPOST('confirm', 'none');
 $formconfirm = '';
 $form=new Form($db);
 
 if(isset($_REQUEST['subCreateBill'])){
 	$TExpedition = $_REQUEST['TExpedition'];
-	$dateFact = GETPOST('dtfact');
+	$dateFact = GETPOST('dtfact', 'int');
 	if(empty($dateFact)) {
 		$dateFact = dol_now();
 	} else {
-		$dateFact = dol_mktime(0, 0, 0, GETPOST('dtfactmonth'), GETPOST('dtfactday'), GETPOST('dtfactyear'));
+		$dateFact = dol_mktime(0, 0, 0, GETPOST('dtfactmonth', 'int'), GETPOST('dtfactday', 'int'), GETPOST('dtfactyear', 'int'));
 	}
 	if(empty($TExpedition)) {
 		setEventMessage($langs->trans('NoShipmentSelected'), 'warnings');
@@ -109,10 +109,10 @@ if ($action == 'remove_file')
 
 	$langs->load("other");
 	$upload_dir = $diroutputpdf;
-	$file = $upload_dir . '/' . GETPOST('file');
+	$file = $upload_dir . '/' . GETPOST('file', 'alpha' );
 	$ret=dol_delete_file($file,0,0,0,'');
-	if ($ret) setEventMessage($langs->trans("FileWasRemoved", GETPOST('urlfile')));
-	else setEventMessage($langs->trans("ErrorFailToDeleteFile", GETPOST('urlfile')), 'errors');
+	if ($ret) setEventMessage($langs->trans("FileWasRemoved", GETPOST('urlfile', 'alpha')));
+	else setEventMessage($langs->trans("ErrorFailToDeleteFile", GETPOST('urlfile', 'alpha')), 'errors');
 	$action='';
 }
 else if($action=='delete_all_pdf_files') {
@@ -146,7 +146,7 @@ else if($action=='confirm_archive_files' && $confirm == 'yes') {
 
 
 // Do we click on purge search criteria ?
-if (GETPOST("button_removefilter_x"))
+if (GETPOST("button_removefilter_x", 'none'))
 {
 
     $search_ref_exp='';
