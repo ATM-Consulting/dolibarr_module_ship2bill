@@ -92,6 +92,7 @@ class Ship2Bill {
 					$f = $this->facture_create($id_client, $dateFact);
 					$f->note_public = $exp->note_public;
 					$f->note_private = $exp->note_private;
+					$f->array_options = $exp->array_options;
 					$f->update($user);
 					$nbFacture++;
 				} else if(($conditionForBillByOrder) && !empty($TBilling[$fk_commande])) {
@@ -117,6 +118,7 @@ class Ship2Bill {
 				// Lien avec la facture
 				$f->add_object_linked('shipping', $exp->id);
 				$f->add_object_linked('commande', $fk_commande);
+				$f->add_object_linked($exp->origin, $exp->origin_id);
 				// Ajout des contacts facturation provenant de l'expé
 				$this->facture_add_shipping_contacts($f, $exp);
 				// Clôture de l'expédition
