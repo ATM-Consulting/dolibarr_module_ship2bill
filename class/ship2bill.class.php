@@ -421,7 +421,12 @@ class Ship2Bill {
 				// Récupération des infos du BL pour le titre, sinon de l'expédition
 				if (! empty($exp->linkedObjectsIds['delivery'])) {
 					$id_liv = array_pop($exp->linkedObjectsIds['delivery']);
-					$liv = new Delivery($db);
+					if((float)DOL_VERSION <= 13.0) {
+						$liv = new Delivery($db);
+					}else{
+						$liv = new Livraison($db);
+					}
+
 					$liv->fetch($id_liv);
 					$title2 = $langs->transnoentities('Delivery').' '.$liv->ref;
 					if(!empty($liv->date_delivery)) $title2.= ' ('.dol_print_date($liv->date_delivery,'day').')';
