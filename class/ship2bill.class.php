@@ -421,7 +421,7 @@ class Ship2Bill {
 				// Récupération des infos du BL pour le titre, sinon de l'expédition
 				if (! empty($exp->linkedObjectsIds['delivery'])) {
 					$id_liv = array_pop($exp->linkedObjectsIds['delivery']);
-					if((float)DOL_VERSION <= 13.0) {
+					if((float)DOL_VERSION > 12.0) {
 						$liv = new Delivery($db);
 					}else{
 						$liv = new Livraison($db);
