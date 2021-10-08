@@ -184,6 +184,11 @@ $(document).ready(function() {
 </script>
 <?php
 
+$deliveryTableName = 'delivery';
+if ((float)DOL_VERSION < 13) {
+	$deliveryTableName = 'livraison';
+}
+
 $sql = "SELECT e.rowid, e.ref, e.date_delivery as date_expedition, l.date_delivery as date_livraison, e.fk_statut
 		, s.nom as socname, s.rowid as socid, c.rowid as cdeid, c.ref as cderef, c.ref_client
 		FROM ".MAIN_DB_PREFIX."expedition as e";
@@ -205,7 +210,7 @@ $sql.= "
  			ON
  		((e.rowid = ee.fk_source AND ee.sourcetype = 'shipping' AND ee.targettype = 'delivery')
  			)
-		LEFT JOIN ".MAIN_DB_PREFIX."livraison as l ON l.rowid = ee.fk_target
+		LEFT JOIN ".MAIN_DB_PREFIX.$deliveryTableName." as l ON l.rowid = ee.fk_target
 		LEFT JOIN ".MAIN_DB_PREFIX."facture as f ON f.rowid = ee2.fk_target
 		LEFT JOIN ".MAIN_DB_PREFIX."commande as c ON c.rowid = ee3.fk_source
 		WHERE e.entity = ".$conf->entity."
@@ -255,7 +260,7 @@ $sql2.= "
  			ON
  		(
  		(e.rowid = ee.fk_target AND ee.targettype = 'shipping' AND ee.sourcetype = 'delivery'))
-		LEFT JOIN ".MAIN_DB_PREFIX."livraison as l ON l.rowid = ee.fk_target
+		LEFT JOIN ".MAIN_DB_PREFIX.$deliveryTableName." as l ON l.rowid = ee.fk_target
 		LEFT JOIN ".MAIN_DB_PREFIX."facture as f ON f.rowid = ee2.fk_target
 		LEFT JOIN ".MAIN_DB_PREFIX."commande as c ON c.rowid = ee3.fk_source
 		WHERE e.entity = ".$conf->entity."
@@ -282,7 +287,7 @@ else if(!empty($search_end_delivery_date) && empty($search_start_delivery_date))
 	$sql2 .= " AND DATE(e.date_delivery) <= '".date('Y-m-d',strtotime($tmp_date_end))."'";
 }
 
-$db->query("CREATE TEMPORARY TABLE ".MAIN_DB_PREFIX."ship2bill_view ".$sql." UNION ".$sql2 );
+$r = $db->query("CREATE TEMPORARY TABLE ".MAIN_DB_PREFIX."ship2bill_view ".$sql." UNION ".$sql2 );
 $sortfieldClean = $sortfield;
 if(strpos($sortfieldClean,'.')!==false) {
 	list($dummy,$sortfieldClean) = explode('.', $sortfield);
@@ -323,7 +328,9 @@ if ($resql)
 	print_liste_field_titre($langs->trans("Réf. Client"),"ship2bill.php","c.ref_client","",$param,'',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("Company"),"ship2bill.php","socname", "", $param,'align="left"',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("DateDeliveryPlanned"),"ship2bill.php","date_expedition","",$param, 'align="center"',$sortfield,$sortorder);
-	if($conf->livraison_bon->enabled) {
+
+	// Utilisation du sous-module livraison activable dans expedition (note: en v13+, renommé en `delivery_note`)
+	if (!empty($conf->livraison_bon->enabled) || !empty($conf->delivery_note->enabled)) {
 		print_liste_field_titre($langs->trans("DeliveryOrder"),"ship2bill.php","e.ref","",$param, '',$sortfield,$sortorder);
 		print_liste_field_titre($langs->trans("DateReceived"),"ship2bill.php","e.date_expedition","",$param, 'align="center"',$sortfield,$sortorder);
 	}
@@ -349,7 +356,9 @@ if ($resql)
 	print '</td>';
 	print '<td class="liste_titre" align="center">'.$form->selectDate(!empty($search_start_delivery_date)?strtotime($tmp_date_start):'','search_start_delivery_date',0,0,1).'
 			</br>'.$form->selectDate(!empty($search_end_delivery_date)?strtotime($tmp_date_end):'','search_end_delivery_date',0,0,1).'</td>';
-	if($conf->livraison_bon->enabled) {
+
+	// Utilisation du sous-module livraison activable dans expedition (note: en v13+, renommé en `delivery_note`)
+	if(!empty($conf->livraison_bon->enabled) || !empty($conf->delivery_note->enabled)) {
 		$colspan += 2;
 		print '<td class="liste_titre">';
 		print '<input class="flat" size="10" type="text" name="search_ref_liv" value="'.$search_ref_liv.'"';
@@ -434,10 +443,12 @@ if ($resql)
 		{
 		}*/
 		print "</td>\n";
-		if($conf->livraison_bon->enabled) {
-            $shipment->fetchObjectLinked($shipment->id,$shipment->element);
-            if(!empty($shipment->linkedObjects['delivery'])) $receiving=(! empty($shipment->linkedObjects['delivery'][key($shipment->linkedObjects['delivery'])])?$shipment->linkedObjects['delivery'][key($shipment->linkedObjects['delivery'])]:'');
-            else $receiving = '';
+
+		// Utilisation du sous-module livraison activable dans expedition (note: en v13+, renommé en `delivery_note`)
+		if(!empty($conf->livraison_bon->enabled) || !empty($conf->delivery_note->enabled)) {
+			$shipment->fetchObjectLinked($shipment->id,$shipment->element);
+			if(!empty($shipment->linkedObjects['delivery'])) $receiving=(! empty($shipment->linkedObjects['delivery'][key($shipment->linkedObjects['delivery'])])?$shipment->linkedObjects['delivery'][key($shipment->linkedObjects['delivery'])]:'');
+			else $receiving = '';
 
 			// Ref
 			print '<td>';
