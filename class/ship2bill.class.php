@@ -11,8 +11,8 @@ class Ship2Bill {
         dol_include_once('/compta/facture/class/facture.class.php');
         dol_include_once('/core/modules/facture/modules_facture.php');
 
-		// Utilisation du module livraison
-		if($conf->livraison_bon->enabled) {
+		// Utilisation du sous-module livraison activable dans expedition (note: en v13+, renommé en `delivery_note`)
+		if(!empty($conf->livraison_bon->enabled) || !empty($conf->delivery_note->enabled)) {
 			dol_include_once('/livraison/class/livraison.class.php');
 		}
 		// Utilisation du module sous-total si activé
@@ -415,7 +415,9 @@ class Ship2Bill {
 
 			$title2 = $langs->transnoentities('Shipment').' '.$exp->ref;
 			if(!empty($exp->date_delivery)) $title2.= ' ('.dol_print_date($exp->date_delivery,'day').')';
-			if($conf->livraison_bon->enabled) {
+
+			// Utilisation du sous-module livraison activable dans expedition (note: en v13+, renommé en `delivery_note`)
+			if(!empty($conf->livraison_bon->enabled) || !empty($conf->delivery_note->enabled)) {
 				$exp->fetchObjectLinked('','','','delivery');
 
 				// Récupération des infos du BL pour le titre, sinon de l'expédition
