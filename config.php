@@ -1,10 +1,18 @@
 <?php
-
-	if(is_file('../main.inc.php'))$dir = '../';
-	else  if(is_file('../../../main.inc.php'))$dir = '../../../';
-	else $dir = '../../';
-
-	include($dir."main.inc.php");
+$res = 0;
+// Try main.inc.php using relative path
+if (!$res && file_exists("../main.inc.php")) {
+	$res = @include __DIR__ . "/../main.inc.php";
+}
+if (!$res && file_exists("../../main.inc.php")) {
+	$res = @include __DIR__ . "/../../main.inc.php";
+}
+if (!$res && file_exists("../../../main.inc.php")) {
+	$res = @include __DIR__ . "/../../../main.inc.php";
+}
+if (!$res) {
+	die("Include of main fails");
+}
 
 if(!defined('INC_FROM_CRON_SCRIPT') && !defined('INC_FROM_DOLIBARR')) {
 
@@ -14,6 +22,10 @@ if(!defined('INC_FROM_CRON_SCRIPT') && !defined('INC_FROM_DOLIBARR')) {
 }
 
 //Fonction reprise d'abricot, car module fonctionnant sans abricot
+/**
+ * @param DoliDB $DoliDb
+ * @param string $moduleName
+ */
 function checkVersion(&$DoliDb, $moduleName) {
 	global $conf;
 	if(class_exists($moduleName)) {
@@ -24,7 +36,7 @@ function checkVersion(&$DoliDb, $moduleName) {
 
 		if(!empty($mod->version)) {
 			$version = $mod->version;
-			if($conf->global->$conf_name != $version) {
+			if(versionXY($conf->global->$conf_name) != versionXY($version)) {
 
 				$message = "Your module wasn't updated (v".$conf->global->$conf_name." != ".$version."). Please reload it or launch the update of database script";
 
@@ -33,4 +45,13 @@ function checkVersion(&$DoliDb, $moduleName) {
 		}
 	}
 
+}
+
+/**
+ * @param string $version  A version number in the form X.Y.Z (ex: 1.21.9)
+ *
+ * @return string  The same version number with only X.Y (ex: 1.21)
+ */
+function versionXY($version) {
+	return preg_replace('/^(\d+\.\d+)(\.\d+)?$/', '$1', $version);
 }
