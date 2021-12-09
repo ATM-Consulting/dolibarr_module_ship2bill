@@ -82,7 +82,7 @@ $form=new Form($db);
 
 if(isset($_REQUEST['subCreateBill'])){
 	$TExpedition = $_REQUEST['TExpedition'];
-	$dateFact = GETPOST('dtfact', 'int');
+	$dateFact = GETPOST('dtfact', 'alphanohtml');
 	if(empty($dateFact)) {
 		$dateFact = dol_now();
 	} else {
