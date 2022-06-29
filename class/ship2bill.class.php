@@ -313,7 +313,7 @@ class Ship2Bill {
 		foreach($exp->lines as $l){
 			if($conf->global->SHIPMENT_GETS_ALL_ORDER_PRODUCTS && $l->qty == 0) continue;
 			// Sélectionne uniquement les produits
-			if ($l->fk_product_type == 0 || $conf->global->STOCK_SUPPORTS_SERVICES) {
+			if (($l->fk_product_type == 0 && !empty($l->fk_product)) || $conf->global->STOCK_SUPPORTS_SERVICES) {
 				$orderline = new OrderLine($db);
 				$orderline->fetch($l->fk_origin_line);
 				$orderline->fetch_optionals();
