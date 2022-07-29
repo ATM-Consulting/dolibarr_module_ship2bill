@@ -170,6 +170,8 @@ $shipment=new Expedition($db);
 $helpurl='EN:Module_Shipments|FR:Module_Exp&eacute;ditions|ES:M&oacute;dulo_Expediciones';
 llxHeader('',$langs->trans('ShipmentToBill'),$helpurl);
 
+$newToken = function_exists('newToken') ? newToken() : $_SESSION['newtoken'];
+
 echo $formconfirm;
 ?>
 <script type="text/javascript">
@@ -318,6 +320,7 @@ if ($resql)
 	print_barre_liste($langs->trans('ShipmentToBill').(!empty($conf->global->SHIP2BILL_GET_SERVICES_FROM_ORDER) ? ' ('.$langs->trans('TotalHTShippingAndTotalHTBillCanBeDifferent').')' : ''), $page, "ship2bill.php",$param,$sortfield,$sortorder,'',$num);
 
 	print '<form name="formAfficheListe" id="formShip2Bill" method="POST" action="ship2bill.php">';
+	print '<input type="hidden" name="token" value="'.$newToken.'">';
 
 	$i = 0;
 	print '<table class="noborder" width="100%">';
