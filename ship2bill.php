@@ -40,7 +40,8 @@ $langs->load('companies');
 $langs->load('ship2bill@ship2bill');
 
 // Security check
-if ($user->societe_id) $socid=$user->societe_id;
+if (!empty($user->societe_id)) $socid=$user->societe_id;
+else $socid=0;
 $result = restrictedArea($user, 'expedition');
 
 $hookmanager->initHooks(array('invoicecard'));
@@ -63,7 +64,7 @@ $sortorder = GETPOST('sortorder','alpha');
 $page = GETPOST('page','int');
 $diroutputpdf=$conf->ship2bill->multidir_output[$conf->entity];
 if (!empty($conf->global->SHIP2BILL_LIST_LENGTH)) $conf->liste_limit = $conf->global->SHIP2BILL_LIST_LENGTH;
-
+$offset = 0;
 if ($page == -1 || empty($page)){ $page = 0; }
 if(!empty($page)) {
     $offset = $conf->liste_limit * $page;
@@ -218,7 +219,7 @@ $sql.= "
 		WHERE e.entity = ".$conf->entity."
 		AND e.fk_statut >= 1
 		AND f.rowid IS NULL AND c.facture = 0";
-if ($socid)
+if (!empty($socid))
 {
 	$sql.= " AND e.fk_soc = ".$socid;
 }
@@ -268,7 +269,7 @@ $sql2.= "
 		WHERE e.entity = ".$conf->entity."
 		AND e.fk_statut >= 1
 		AND f.rowid IS NULL AND c.facture = 0";
-if ($socid)
+if (!empty($socid))
 {
 	$sql2.= " AND e.fk_soc = ".$socid;
 }
@@ -585,7 +586,7 @@ if ($resql)
 	}
 	print '</form>';
 
-	if($conf->global->SHIP2BILL_GENERATE_GLOBAL_PDF) {
+	if(!empty($conf->global->SHIP2BILL_GENERATE_GLOBAL_PDF)) {
 		print '<br><br>';
 		$formfile = new FormFile($db);
 		$formfile->show_documents('ship2bill','',$diroutputpdf,$urlsource,false,true,'',1,1,0,48,1,$param,$langs->trans("GlobalGeneratedFiles"));
