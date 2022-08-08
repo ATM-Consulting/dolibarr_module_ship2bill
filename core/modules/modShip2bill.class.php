@@ -57,10 +57,12 @@ class modShip2bill extends DolibarrModules
 		$this->editor_name = 'ATM Consulting';
 		$this->editor_url = 'https://www.atm-consulting.fr';
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
+
 		$this->version = '1.8.0';
 		// Url to the file with your last numberversion of this module
 		require_once __DIR__ . '/../../class/techatm.class.php';
 		$this->url_last_version = \ship2bill\TechATM::getLastModuleVersionUrl($this);
+
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
@@ -168,7 +170,7 @@ class modShip2bill extends DolibarrModules
         $this->boxes = array();			// List of boxes
 		// Example:
 		//$this->boxes=array(array(0=>array('file'=>'myboxa.php','note'=>'','enabledbydefaulton'=>'Home'),1=>array('file'=>'myboxb.php','note'=>''),2=>array('file'=>'myboxc.php','note'=>'')););
-
+		$r=0;
 		// Permissions
 		$this->rights = array();		// Permission array used by this module
 		$this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
@@ -176,7 +178,7 @@ class modShip2bill extends DolibarrModules
 		$this->rights[$r][3] = 0; 					// Permission by default for new user (0/1)
 		$this->rights[$r][4] = 'read';				// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
 		$r++;
-		$r=0;
+
 
 
 		// Main menu entries

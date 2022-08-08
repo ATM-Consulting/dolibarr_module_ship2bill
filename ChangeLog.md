@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 - NEW : Ajout de la class TechATM pour l'affichage de la page "A propos" *11/05/2022* 1.8.0
 
 ## 1.7
+- FIX: PHP 8 - *04/08/2022* - 1.7.6
 - FIX: Compatibility V16 - *07/06/2022* - 1.7.5
 - FIX: doublon dans le PDF de la facture générée lorsque ligne libre de produit dans la commande - *2022-06-28* - 1.7.4
 - FIX: date facturation n'était jamais mise à jour - *2021-12-09* - 1.7.3
