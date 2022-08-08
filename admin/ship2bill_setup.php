@@ -72,6 +72,16 @@ if (preg_match('/del_(.*)/',$action,$reg))
 
 llxHeader('',$langs->trans("Ship2BillSetup"));
 
+// Configuration header
+$head = ship2billAdminPrepareHead();
+dol_fiche_head(
+	$head,
+	'settings',
+	$langs->trans("Module104140Name"),
+	0,
+	"ship2bill@ship2bill"
+);
+
 $linkback='<a href="'.DOL_URL_ROOT.'/admin/modules.php">'.$langs->trans("BackToModuleList").'</a>';
 print_fiche_titre($langs->trans("Ship2BillSetup"),$linkback,'ship2bill@ship2bill');
 
