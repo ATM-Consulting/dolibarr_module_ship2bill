@@ -319,6 +319,19 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">'
 print '</form>';
 print '</td></tr>';
 
+$var = ! $var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans('SHIP2BILL_DISPLAY_SHIPMENT_REAL_DATE').'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="300">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$newToken.'">';
+print '<input type="hidden" name="action" value="set_SHIP2BILL_DISPLAY_SHIPMENT_REAL_DATE">';
+print $form->selectyesno('SHIP2BILL_DISPLAY_SHIPMENT_REAL_DATE', ! empty($conf->global->SHIP2BILL_DISPLAY_SHIPMENT_REAL_DATE) ? $conf->global->SHIP2BILL_DISPLAY_SHIPMENT_REAL_DATE : '', 1);
+print '<input type="submit" class="button" value="'.$langs->trans('Modify').'">';
+print '</form>';
+print '</td></tr>';
+
 print '</table>';
 
 // Footer
