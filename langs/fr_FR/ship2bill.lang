@@ -41,3 +41,4 @@ OneBillByThirdparty=Une facture par tiers
 OneBillByShipment=Une facture par expédition
 OneBillByOrder=Une facture par commande
 BillingManagement=Gestion de la facturation
+SHIP2BILL_DISPLAY_SHIPMENT_REAL_DATE=Afficher la date réel de l'expédition plutôt que la date de livraison dans les titres

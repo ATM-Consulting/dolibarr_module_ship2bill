@@ -412,9 +412,9 @@ class Ship2Bill {
 				if(!empty($ord->ref_client)) $title.= ' / '.$ord->ref_client;
 				if(!empty($ord->date_commande)) $title.= ' ('.dol_print_date($ord->date_commande,'day').')';
 			}
-
 			$title2 = $langs->transnoentities('Shipment').' '.$exp->ref;
-			if(!empty($exp->date_delivery)) $title2.= ' ('.dol_print_date($exp->date_delivery,'day').')';
+			if(!empty($exp->date_delivery) && empty($conf->global->SHIP2BILL_DISPLAY_SHIPMENT_REAL_DATE)) $title2.= ' ('.dol_print_date($exp->date_delivery,'day').')';
+			else if(!empty($conf->global->SHIP2BILL_DISPLAY_SHIPMENT_REAL_DATE) && !empty($exp->date_creation))$title2.= ' ('.dol_print_date($exp->date_creation,'day').')';
 
 			// Utilisation du sous-module livraison activable dans expedition (note: en v13+, renommé en `delivery_note`)
 			if(!empty($conf->livraison_bon->enabled) || !empty($conf->delivery_note->enabled)) {
