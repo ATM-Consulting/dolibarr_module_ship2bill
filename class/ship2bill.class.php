@@ -117,7 +117,10 @@ class Ship2Bill {
 				$this->facture_add_subtotal($f, $sub);
 				// Lien avec la facture
 				$f->add_object_linked('shipping', $exp->id);
-				$f->add_object_linked('commande', $fk_commande);
+                if ((float)DOL_VERSION < 15) {
+                    //Dolibarr already create link
+                    $f->add_object_linked('commande', $fk_commande);
+                }
 				$f->add_object_linked($exp->origin, $exp->origin_id);
 				// Ajout des contacts facturation provenant de l'expé
 				$this->facture_add_shipping_contacts($f, $exp);
@@ -324,7 +327,7 @@ class Ship2Bill {
 				if((float)DOL_VERSION <= 3.4)
 					$f->addline($f->id, $l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'shipping',$l->line_id,0,$orderline->fk_fournprice,$orderline->pa_ht,$orderline->label);
 				else
-					$f->addline($l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,$orderline->product_type,-1,$orderline->special_code,'shipping',$l->line_id,0,$orderline->fk_fournprice,$orderline->pa_ht,$orderline->label, $orderline->array_options);
+					$ret = $f->addline($l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,$orderline->product_type,-1,$orderline->special_code,'shipping',$l->line_id,0,$orderline->fk_fournprice,$orderline->pa_ht,$orderline->label, $orderline->array_options);
 			}
 		}
 
@@ -336,11 +339,7 @@ class Ship2Bill {
 			$commande->fetch($exp->origin_id);
 
 			//pre($commande->linkedObjects,true);exit;
-			if($this->_expeditionBilled($commande)) {
-				null;
-			}
-			else{
-
+			if( !$this->_expeditionBilled($commande,$exp)) {
 				foreach($commande->lines as $line){
 
 					//Prise en compte des services et des lignes libre uniquement
@@ -382,7 +381,7 @@ class Ship2Bill {
 	}
 
 	//On regarde si une commande a déjà été facturée : si oui alors les services ont déjà été facturée
-	function _expeditionBilled(&$commande){
+	function _expeditionBilled(&$commande,$exp){
 		$commande->fetchObjectLinked($exp->origin_id, 'commande', '', 'shipping');
 
 		foreach($commande->linkedObjects['shipping'] as $expedition){
