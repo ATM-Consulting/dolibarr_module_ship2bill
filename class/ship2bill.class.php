@@ -327,7 +327,7 @@ class Ship2Bill {
 				if((float)DOL_VERSION <= 3.4)
 					$f->addline($f->id, $l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'shipping',$l->line_id,0,$orderline->fk_fournprice,$orderline->pa_ht,$orderline->label);
 				else
-					$ret = $f->addline($l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,$orderline->product_type,-1,$orderline->special_code,'shipping',$l->line_id,0,$orderline->fk_fournprice,$orderline->pa_ht,$orderline->label, $orderline->array_options);
+					$f->addline($l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,$orderline->product_type,-1,$orderline->special_code,'shipping',$l->line_id,0,$orderline->fk_fournprice,$orderline->pa_ht,$orderline->label, $orderline->array_options);
 			}
 		}
 
