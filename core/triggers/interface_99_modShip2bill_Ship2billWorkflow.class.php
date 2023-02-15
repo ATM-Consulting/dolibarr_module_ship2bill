@@ -132,7 +132,7 @@ class InterfaceShip2billWorkflow
 			if(!empty($object->linkedObjects['shipping'])){
 				foreach($object->linkedObjects['shipping'] as $expedition) {
 					// Clôturer l'expédition
-					$expedition->set_billed();
+					$expedition->setBilled();
 
 					// Classer facturée la commande si déjà au statut "Délivrée"
 					// Ainsi que la proposition rattachée

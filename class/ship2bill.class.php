@@ -122,12 +122,13 @@ class Ship2Bill {
 				// Ajout des contacts facturation provenant de l'expé
 				$this->facture_add_shipping_contacts($f, $exp);
 				// Clôture de l'expédition
-				if($conf->global->SHIP2BILL_CLOSE_SHIPMENT) $exp->set_billed();
+				if($conf->global->SHIP2BILL_CLOSE_SHIPMENT) $exp->setBilled();
 
 				if($conditionForBillByOrder) $TBilling[$fk_commande] = $f;
 
 				if($conditionForBillByShipment) {
 					if($conf->global->SHIP2BILL_VALID_INVOICE) $f->validate($user, '', $conf->global->SHIP2BILL_WARHOUSE_TO_USE);
+
 					if($show_trace) {
 						echo $f->id . '|';
 						flush();
