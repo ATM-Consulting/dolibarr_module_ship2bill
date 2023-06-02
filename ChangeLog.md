@@ -2,6 +2,8 @@
 All notable changes to this project will be documented in this file.
 
 ## 1.7
+- FIX: [thomas-Ngr] Dolibarr log Warning (`run_trigger` renamed to `runTrigger`, alias kept for backward 
+  compatibility) - *02/06/2023* - 1.7.7
 - FIX: PHP 8 - *04/08/2022* - 1.7.6
 - FIX: Compatibility V16 - *07/06/2022* - 1.7.5
 - FIX: doublon dans le PDF de la facture générée lorsque ligne libre de produit dans la commande - *2022-06-28* - 1.7.4

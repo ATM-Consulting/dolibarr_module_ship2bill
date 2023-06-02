@@ -103,32 +103,20 @@ class InterfaceShip2billWorkflow
      * Function called when a Dolibarrr business event is done.
      * All functions "run_trigger" are triggered if file
      * is inside directory core/triggers
-     *
-     * 	@param		string		$action		Event action code
-     * 	@param		Object		$object		Object
-     * 	@param		User		$user		Object user
-     * 	@param		Translate	$langs		Object langs
-     * 	@param		conf		$conf		Object conf
-     * 	@return		int						<0 if KO, 0 if no triggered ran, >0 if OK
-     */
-    /**
-     * Function called when a Dolibarrr business event is done.
-     * All functions "run_trigger" are triggered if file
-     * is inside directory core/triggers
      * For old versions compatibility
      *
      * 	@param		string		$action		Event action code
      * 	@param		Object		$object		Object
      * 	@param		User		$user		Object user
      * 	@param		Translate	$langs		Object langs
-     * 	@param		conf		$conf		Object conf
+     * 	@param		Conf		$conf		Object conf
      * 	@return		int						<0 if KO, 0 if no triggered ran, >0 if OK
      */
     public function run_trigger($action, $object, $user, $langs, $conf){
-        return $this->runTrigger($action, $object, $user, $langs, $conf)
+        return $this->runTrigger($action, $object, $user, $langs, $conf);
     }
-    
-    
+
+
     /**
      * Function called when a Dolibarrr business event is done.
      * All functions "run_trigger" are triggered if file
@@ -138,7 +126,7 @@ class InterfaceShip2billWorkflow
      * 	@param		Object		$object		Object
      * 	@param		User		$user		Object user
      * 	@param		Translate	$langs		Object langs
-     * 	@param		conf		$conf		Object conf
+     * 	@param		Conf		$conf		Object conf
      * 	@return		int						<0 if KO, 0 if no triggered ran, >0 if OK
      */
     public function runTrigger($action, $object, $user, $langs, $conf)
@@ -149,9 +137,9 @@ class InterfaceShip2billWorkflow
 
         global $db,$conf;
 
-        /*
-	 *  FACTURE
-	 */
+		/*
+		 *  FACTURE
+		 */
         if ($action == 'BILL_VALIDATE' && $conf->global->SHIP2BILL_CLASSYFIED_PAYED_ORDER)
         {
 			dol_include_once('/commande/class/commande.class.php');
