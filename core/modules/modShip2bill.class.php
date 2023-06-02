@@ -58,7 +58,7 @@ class modShip2bill extends DolibarrModules
 		$this->editor_url = 'https://www.atm-consulting.fr';
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
 
-		$this->version = '1.8.2';
+		$this->version = '1.8.3';
 		// Url to the file with your last numberversion of this module
 		require_once __DIR__ . '/../../class/techatm.class.php';
 		$this->url_last_version = \ship2bill\TechATM::getLastModuleVersionUrl($this);
@@ -263,6 +263,7 @@ class modShip2bill extends DolibarrModules
 
 
 	function setVersion(&$DoliDb, $moduleName) {
+		global $conf;
 
 		if(class_exists($moduleName)) {
 			dol_include_once('/core/lib/admin.lib.php');
@@ -271,7 +272,7 @@ class modShip2bill extends DolibarrModules
 
 			if(!empty($mod->version)) {
 				$version = $mod->version;
-				dolibarr_set_const($DoliDb, 'ATM_MODULE_VERSION_' . strtoupper($moduleName), $version);
+				dolibarr_set_const($DoliDb, 'ATM_MODULE_VERSION_' . strtoupper($moduleName), $version, 'chaine', 0, '', $conf->entity);
 			}
 		}
 	}
