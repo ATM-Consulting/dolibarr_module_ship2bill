@@ -263,6 +263,7 @@ class modShip2bill extends DolibarrModules
 
 
 	function setVersion(&$DoliDb, $moduleName) {
+		global $conf;
 
 		if(class_exists($moduleName)) {
 			dol_include_once('/core/lib/admin.lib.php');
@@ -271,7 +272,7 @@ class modShip2bill extends DolibarrModules
 
 			if(!empty($mod->version)) {
 				$version = $mod->version;
-				dolibarr_set_const($DoliDb, 'ATM_MODULE_VERSION_' . strtoupper($moduleName), $version);
+				dolibarr_set_const($DoliDb, 'ATM_MODULE_VERSION_' . strtoupper($moduleName), $version, 'chaine', 0, '', $conf->entity);
 			}
 		}
 	}
