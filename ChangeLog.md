@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ## 1.8
+- FIX : [hregis] Conf saved to the wrong entity - *02/06/2023* - 1.8.3
 - FIX : set_billed() function replaced by setBilled() *15/02/2023* - 1.8.2
 - FIX : Missing module icon  *17/10/2022* 1.8.1
 - FIX : Conf permettant de choisir la date de création plutôt que la date de livraison pour les titres dans les factures (DA022055) *14/10/2022* 1.8.1
