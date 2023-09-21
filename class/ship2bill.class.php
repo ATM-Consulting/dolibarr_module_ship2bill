@@ -458,7 +458,7 @@ class Ship2Bill {
 				}
 			} else {
 				if((float)DOL_VERSION <= 3.4) $f->addline($f->id, $title, 0, 1, 0);
-				else $f->addline($title, 0, 1, -1);
+				else $f->addline($title, 0, 1, 0);
 			}
 		}
 	}
