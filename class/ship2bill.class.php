@@ -394,9 +394,8 @@ class Ship2Bill {
 		foreach($commande->linkedObjects['shipping'] as $expedition){
 
 			$expedition->fetchObjectLinked($expedition->id,'shipping','','facture');
-			if($expedition->linkedObjects['facture'] ? count($expedition->linkedObjects['facture']) > 0 : -1) return true;
+			if(!empty($expedition->linkedObjects['facture']) && count($expedition->linkedObjects['facture']) > 0) return true;
 		}
-
 		return false;
 	}
 
