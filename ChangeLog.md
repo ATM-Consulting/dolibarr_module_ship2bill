@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ## 1.8
+- FIX : mising parameters for addline txtva and add condition to test if table of command is empty  - *21/09/2023* - 1.8.4
 - FIX : [hregis] Conf saved to the wrong entity - *02/06/2023* - 1.8.3
 - FIX : set_billed() function replaced by setBilled() *15/02/2023* - 1.8.2
 - FIX : Missing module icon  *17/10/2022* 1.8.1
