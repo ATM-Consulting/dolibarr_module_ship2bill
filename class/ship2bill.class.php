@@ -394,10 +394,8 @@ class Ship2Bill {
 		foreach($commande->linkedObjects['shipping'] as $expedition){
 
 			$expedition->fetchObjectLinked($expedition->id,'shipping','','facture');
-
-			if(count($expedition->linkedObjects['facture']) > 0) return true;
+			if(!empty($expedition->linkedObjects['facture']) && count($expedition->linkedObjects['facture']) > 0) return true;
 		}
-
 		return false;
 	}
 
@@ -459,7 +457,7 @@ class Ship2Bill {
 				}
 			} else {
 				if((float)DOL_VERSION <= 3.4) $f->addline($f->id, $title, 0, 1, 0);
-				else $f->addline($title, 0, 1);
+				else $f->addline($title, 0, 1, 0);
 			}
 		}
 	}
