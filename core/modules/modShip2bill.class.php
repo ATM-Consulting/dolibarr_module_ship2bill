@@ -105,7 +105,7 @@ class modShip2bill extends DolibarrModules
 		$this->depends = array('modExpedition');		// List of modules id that must be enabled if this module is enabled
 		$this->requiredby = array();	// List of modules id to disable if this one is disabled
 		$this->conflictwith = array();	// List of modules id this module is in conflict with
-		$this->phpmin = array(5,3);					// Minimum version of PHP required by module
+		$this->phpmin = array(7,0);					// Minimum version of PHP required by module
 		$this->need_dolibarr_version = array(3,3);	// Minimum version of Dolibarr required by module
 		$this->langfiles = array("ship2bill@ship2bill");
 
@@ -239,7 +239,7 @@ class modShip2bill extends DolibarrModules
         $extrafields = new ExtraFields($this->db);
 
         // extrafields tiers
-        $res = $extrafields->addExtraField('s2b_bill_management', 'Regroupement des expéditions dans une facture lors de la génération en masse', 'select', 0, 0, 'thirdparty', 0, 0, '',  array('options'=>array(1 => 'Une facture par tiers', 2=> 'Une facture par expédition', 3=>'Une facture par commande')), 1, '',  $conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD);
+        $res = $extrafields->addExtraField('s2b_bill_management', 'Regroupement des expéditions dans une facture lors de la génération en masse', 'select', 0, 0, 'thirdparty', 0, 0, '',  array('options'=>array(1 => 'Une facture par tiers', 2=> 'Une facture par expédition', 3=>'Une facture par commande')), 1, '',   getDolGlobalString('SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD'));
 		$this->updateS2b_bill_management($this->db);
 
 		$this->setVersion($this->db, 'modShip2bill');

@@ -24,9 +24,9 @@ class Ship2Bill {
 		}
 
 		// Option pour la génération PDF
-		$hidedetails = (! empty($conf->global->MAIN_GENERATE_DOCUMENTS_HIDE_DETAILS) ? 1 : 0);
-		$hidedesc = (! empty($conf->global->MAIN_GENERATE_DOCUMENTS_HIDE_DESC) ? 1 : 0);
-		$hideref = (! empty($conf->global->MAIN_GENERATE_DOCUMENTS_HIDE_REF) ? 1 : 0);
+		$hidedetails = (getDolGlobalString('MAIN_GENERATE_DOCUMENTS_HIDE_DETAILS') ? 1 : 0);
+		$hidedesc = (getDolGlobalString('MAIN_GENERATE_DOCUMENTS_HIDE_DESC') ? 1 : 0);
+		$hideref = (getDolGlobalString('MAIN_GENERATE_DOCUMENTS_HIDE_REF') ? 1 : 0);
 
 		if(empty($dateFact)) {
 			$dateFact = dol_now();
@@ -42,7 +42,7 @@ class Ship2Bill {
 		foreach($TExpedition as $id_client => $Tid_exp)
 		{
 			if (empty($Tid_exp)) continue;
-			if(!empty($id_client) && !empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD)){
+			if(!empty($id_client) && getDolGlobalString('SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD')){
                 dol_include_once('/societe/class/societe.class.php');
                 $soc = new Societe($db);
                 $soc->fetch($id_client);
@@ -51,17 +51,17 @@ class Ship2Bill {
 			 * On prépare les conditions car certaines sont répétées plusieurs fois
 			 */
 			//Une facture par tiers
-			$conditionForBillByThirdparty = ((empty($conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT) && (empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD)
-						|| (!empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD) && empty($soc->array_options['options_s2b_bill_management'])))) //Si la gestion par extrafield est activé mais que l'extrafield est vide on reprend la conf par défaut
-				|| (!empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD) && $soc->array_options['options_s2b_bill_management'] == 1));
+			$conditionForBillByThirdparty = ((!getDolGlobalString('SHIP2BILL_INVOICE_PER_SHIPMENT') && (!getDolGlobalString('SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD')
+						|| (getDolGlobalString('SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD') && empty($soc->array_options['options_s2b_bill_management'])))) //Si la gestion par extrafield est activé mais que l'extrafield est vide on reprend la conf par défaut
+				|| (getDolGlobalString('SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD') && $soc->array_options['options_s2b_bill_management'] == 1));
 			//Une facture par expéd
-			$conditionForBillByShipment = (($conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT == 1 && (empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD)
-						|| (!empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD) && empty($soc->array_options['options_s2b_bill_management'])))) //Si la gestion par extrafield est activé mais que l'extrafield est vide on reprend la conf par défaut
-				|| (!empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD) && $soc->array_options['options_s2b_bill_management'] == 2));;
+			$conditionForBillByShipment = ((getDolGlobalInt('SHIP2BILL_INVOICE_PER_SHIPMENT') == 1 && (!getDolGlobalString('SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD')
+						|| (getDolGlobalString('SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD') && empty($soc->array_options['options_s2b_bill_management'])))) //Si la gestion par extrafield est activé mais que l'extrafield est vide on reprend la conf par défaut
+				|| (getDolGlobalString('SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD') && $soc->array_options['options_s2b_bill_management'] == 2));;
 			//Une facture par commande
-			$conditionForBillByOrder =(($conf->global->SHIP2BILL_INVOICE_PER_SHIPMENT == 2 && (empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD)
-						|| (!empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD) && empty($soc->array_options['options_s2b_bill_management'])))) //Si la gestion par extrafield est activé mais que l'extrafield est vide on reprend la conf par défaut
-				|| (!empty($conf->global->SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD) && $soc->array_options['options_s2b_bill_management'] == 3));
+			$conditionForBillByOrder =((getDolGlobalInt('SHIP2BILL_INVOICE_PER_SHIPMENT') == 2 && (!getDolGlobalString('SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD')
+						|| (getDolGlobalString('SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD') && empty($soc->array_options['options_s2b_bill_management'])))) //Si la gestion par extrafield est activé mais que l'extrafield est vide on reprend la conf par défaut
+				|| (getDolGlobalString('SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD') && $soc->array_options['options_s2b_bill_management'] == 3));
 
 			if(!empty($conf->incoterm->enabled)) $incoterms_updated=false;
 
@@ -122,7 +122,7 @@ class Ship2Bill {
 				// Ajout des contacts facturation provenant de l'expé
 				$this->facture_add_shipping_contacts($f, $exp);
 				// Clôture de l'expédition
-				if($conf->global->SHIP2BILL_CLOSE_SHIPMENT) {
+				if(getDolGlobalString('SHIP2BILL_CLOSE_SHIPMENT')) {
 					if(version_compare(DOL_VERSION, '17.0.0', '>=')){
 						$exp->setBilled();
 					} else {
@@ -133,13 +133,13 @@ class Ship2Bill {
 				if($conditionForBillByOrder) $TBilling[$fk_commande] = $f;
 
 				if($conditionForBillByShipment) {
-					if($conf->global->SHIP2BILL_VALID_INVOICE) $f->validate($user, '', $conf->global->SHIP2BILL_WARHOUSE_TO_USE);
+					if(getDolGlobalString('SHIP2BILL_VALID_INVOICE')) $f->validate($user, '', getDolGlobalString('SHIP2BILL_WARHOUSE_TO_USE'));
 					if($show_trace) {
 						echo $f->id . '|';
 						flush();
 					}
 					// Génération du PDF
-					if(!empty($conf->global->SHIP2BILL_GENERATE_INVOICE_PDF)) $TFiles[] = $this->facture_generate_pdf($f, $hidedetails, $hidedesc, $hideref);
+					if(getDolGlobalString('SHIP2BILL_GENERATE_INVOICE_PDF')) $TFiles[] = $this->facture_generate_pdf($f, $hidedetails, $hidedesc, $hideref);
 				}
 			}
 
@@ -151,26 +151,26 @@ class Ship2Bill {
 			// Validation de la facture
 			if($conditionForBillByOrder) {
 				foreach($TBilling as $bill) {
-					if($conf->global->SHIP2BILL_VALID_INVOICE) $bill->validate($user, '', $conf->global->SHIP2BILL_WARHOUSE_TO_USE);
+					if(getDolGlobalString('SHIP2BILL_VALID_INVOICE')) $bill->validate($user, '',  getDolGlobalString('SHIP2BILL_WARHOUSE_TO_USE'));
 					if($show_trace) {
 						echo $bill->id . '|';
 						flush();
 					}
 					// Génération du PDF
-					if(!empty($conf->global->SHIP2BILL_GENERATE_INVOICE_PDF)) $TFiles[] = $this->facture_generate_pdf($bill, $hidedetails, $hidedesc, $hideref);
+					if(getDolGlobalString('SHIP2BILL_GENERATE_INVOICE_PDF')) $TFiles[] = $this->facture_generate_pdf($bill, $hidedetails, $hidedesc, $hideref);
 				}
 			} else if($conditionForBillByThirdparty) {
-				if($conf->global->SHIP2BILL_VALID_INVOICE) $f->validate($user, '', $conf->global->SHIP2BILL_WARHOUSE_TO_USE);
+				if(getDolGlobalString('SHIP2BILL_VALID_INVOICE') ) $f->validate($user, '',  getDolGlobalString('SHIP2BILL_WARHOUSE_TO_USE'));
 				if($show_trace) {
 					echo $f->id . '|';
 					flush();
 				}
 				// Génération du PDF
-				if(!empty($conf->global->SHIP2BILL_GENERATE_INVOICE_PDF)) $TFiles[] = $this->facture_generate_pdf($f, $hidedetails, $hidedesc, $hideref);
+				if(getDolGlobalString('SHIP2BILL_GENERATE_INVOICE_PDF')) $TFiles[] = $this->facture_generate_pdf($f, $hidedetails, $hidedesc, $hideref);
 			}
 		}
 
-		if($conf->global->SHIP2BILL_GENERATE_GLOBAL_PDF) $this->generate_global_pdf($TFiles);
+		if(getDolGlobalString('SHIP2BILL_GENERATE_GLOBAL_PDF')) $this->generate_global_pdf($TFiles);
 
 		return $nbFacture;
 	}
@@ -266,7 +266,7 @@ class Ship2Bill {
 		$f = new Facture($db);
 
 		// Si le module Client facturé est activé et que la constante BILLANOTHERCUSTOMER_USE_PARENT_BY_DEFAULT est à 1, on facture la maison mère
-		if($conf->billanothercustomer->enabled && $conf->global->BILLANOTHERCUSTOMER_USE_PARENT_BY_DEFAULT) {
+		if($conf->billanothercustomer->enabled && getDolGlobalString('BILLANOTHERCUSTOMER_USE_PARENT_BY_DEFAULT')) {
 			$soc = new Societe($db);
 			$soc->fetch($id_client);
 			if($soc->parent > 0)
@@ -284,13 +284,13 @@ class Ship2Bill {
 		$date_lim = $f->calculate_date_lim_reglement();
 		$f->date_lim_reglement = $date_lim;
 		$f->mode_reglement_id = $f->thirdparty->mode_reglement_id;
-		$f->modelpdf = !empty($conf->global->SHIP2BILL_GENERATE_INVOICE_PDF) ? $conf->global->SHIP2BILL_GENERATE_INVOICE_PDF : 'crabe';
+		$f->modelpdf = getDolGlobalString('SHIP2BILL_GENERATE_INVOICE_PDF') ? getDolGlobalString('SHIP2BILL_GENERATE_INVOICE_PDF') : 'crabe';
 		$f->statut = 0;
 
 		//Récupération du compte bancaire si mode de règlement = VIR
-		if (!empty($conf->global->SHIP2BILL_USE_DEFAULT_BANK_IN_INVOICE_MODULE) && !empty($conf->global->FACTURE_RIB_NUMBER) && $this->getModeReglementCode($db , $f->mode_reglement_id) == 'VIR')
+		if (getDolGlobalString('SHIP2BILL_USE_DEFAULT_BANK_IN_INVOICE_MODULE') && getDolGlobalString('FACTURE_RIB_NUMBER') && $this->getModeReglementCode($db , $f->mode_reglement_id) == 'VIR')
 		{
-			$f->fk_account = $conf->global->FACTURE_RIB_NUMBER;
+			$f->fk_account = getDolGlobalString('FACTURE_RIB_NUMBER');
 		}
 
 		$f->create($user);
@@ -317,9 +317,9 @@ class Ship2Bill {
 
 		// Pour chaque produit de l'expédition, ajout d'une ligne de facture
 		foreach($exp->lines as $l){
-			if($conf->global->SHIPMENT_GETS_ALL_ORDER_PRODUCTS && $l->qty == 0) continue;
+			if(getDolGlobalString('SHIPMENT_GETS_ALL_ORDER_PRODUCTS')  && $l->qty == 0) continue;
 			// Sélectionne uniquement les produits
-			if (($l->fk_product_type == 0 && !empty($l->fk_product)) || $conf->global->STOCK_SUPPORTS_SERVICES) {
+			if (($l->fk_product_type == 0 && !empty($l->fk_product)) || getDolGlobalString('STOCK_SUPPORTS_SERVICES')) {
 				$orderline = new OrderLine($db);
 				$orderline->fetch($l->fk_origin_line);
 				$orderline->fetch_optionals();
@@ -335,7 +335,7 @@ class Ship2Bill {
 		}
 
 		//Récupération des services de la commande si SHIP2BILL_GET_SERVICES_FROM_ORDER
-		if($conf->global->SHIP2BILL_GET_SERVICES_FROM_ORDER && (float)DOL_VERSION >= 3.5 && empty($conf->global->STOCK_SUPPORTS_SERVICES)){
+		if(getDolGlobalString('SHIP2BILL_GET_SERVICES_FROM_ORDER')  && (float)DOL_VERSION >= 3.5 && !getDolGlobalString('STOCK_SUPPORTS_SERVICES')){
 			dol_include_once('/commande/class/commande.class.php');
 
 			$commande = new Commande($db);
@@ -403,7 +403,7 @@ class Ship2Bill {
 		global $conf, $langs, $db;
 
 		// Affichage des références expéditions en tant que titre
-		if($conf->global->SHIP2BILL_ADD_SHIPMENT_AS_TITLES) {
+		if(getDolGlobalString('SHIP2BILL_ADD_SHIPMENT_AS_TITLES')) {
 			$title = '';
 			$exp->fetchObjectLinked('','commande');
 
@@ -417,8 +417,8 @@ class Ship2Bill {
 				if(!empty($ord->date_commande)) $title.= ' ('.dol_print_date($ord->date_commande,'day').')';
 			}
 			$title2 = $langs->transnoentities('Shipment').' '.$exp->ref;
-			if(!empty($exp->date_delivery) && empty($conf->global->SHIP2BILL_DISPLAY_SHIPMENT_REAL_DATE)) $title2.= ' ('.dol_print_date($exp->date_delivery,'day').')';
-			else if(!empty($conf->global->SHIP2BILL_DISPLAY_SHIPMENT_REAL_DATE) && !empty($exp->date_creation))$title2.= ' ('.dol_print_date($exp->date_creation,'day').')';
+			if(!empty($exp->date_delivery) && !getDolGlobalString('SHIP2BILL_DISPLAY_SHIPMENT_REAL_DATE')) $title2.= ' ('.dol_print_date($exp->date_delivery,'day').')';
+			else if(getDolGlobalString('SHIP2BILL_DISPLAY_SHIPMENT_REAL_DATE') && !empty($exp->date_creation))$title2.= ' ('.dol_print_date($exp->date_creation,'day').')';
 
 			// Utilisation du sous-module livraison activable dans expedition (note: en v13+, renommé en `delivery_note`)
 			if(!empty($conf->livraison_bon->enabled) || !empty($conf->delivery_note->enabled)) {
@@ -441,7 +441,7 @@ class Ship2Bill {
 
 			$title.= ' - '.$title2;
 
-			if($ord->socid > 0 && $conf->global->SHIP2BILL_DISPLAY_ORDERCUSTOMER_IN_TITLE) {
+			if($ord->socid > 0 && getDolGlobalString('SHIP2BILL_DISPLAY_ORDERCUSTOMER_IN_TITLE')) {
 				$soc = new Societe($db);
 				$soc->fetch($ord->socid);
 
@@ -466,7 +466,7 @@ class Ship2Bill {
 		global $conf, $langs;
 
 		// Ajout d'un sous-total par expédition
-		if($conf->global->SHIP2BILL_ADD_SHIPMENT_SUBTOTAL) {
+		if(getDolGlobalString('SHIP2BILL_ADD_SHIPMENT_SUBTOTAL')) {
 			if($conf->subtotal->enabled) {
 				if(method_exists($sub, 'addSubTotalLine')) $sub->addSubTotalLine($f, $langs->transnoentities('SubTotal'), 99);
 				else {
@@ -504,7 +504,7 @@ class Ship2Bill {
 		$f->fetch($f->id);
 
 		$outputlangs = $langs;
-		if ($conf->global->MAIN_MULTILANGS) {$newlang=$f->client->default_lang;}
+		if (getDolGlobalString('MAIN_MULTILANGS')) {$newlang=$f->client->default_lang;}
 		if (! empty($newlang)) {
 			$outputlangs = new Translate("",$conf);
 			$outputlangs->setDefaultLang($newlang);
@@ -538,7 +538,7 @@ class Ship2Bill {
         }
         $pdf->SetFont(pdf_getPDFFont($langs));
 
-        if (! empty($conf->global->MAIN_DISABLE_PDF_COMPRESSION)) $pdf->SetCompression(false);
+        if (getDolGlobalString('MAIN_DISABLE_PDF_COMPRESSION')) $pdf->SetCompression(false);
 
 		// Add all others
 		foreach($TFiles as $file)
@@ -565,8 +565,8 @@ class Ship2Bill {
 			$now=dol_now();
 			$file=$diroutputpdf.'/'.$filename.'_'.dol_print_date($now,'dayhourlog').'.pdf';
 			$pdf->Output($file,'F');
-			if (! empty($conf->global->MAIN_UMASK))
-			@chmod($file, octdec($conf->global->MAIN_UMASK));
+			if (getDolGlobalString('MAIN_UMASK'))
+			@chmod($file, octdec( getDolGlobalString('MAIN_UMASK')));
 		}
 		else
 		{

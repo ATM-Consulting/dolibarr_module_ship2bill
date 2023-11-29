@@ -22,7 +22,6 @@
  *      \ingroup    expedition
  *      \brief      Page to list all shipments
  */
-
 require 'config.php';
 dol_include_once('/expedition/class/expedition.class.php');
 dol_include_once('/ship2bill/class/ship2bill.class.php');
@@ -63,13 +62,13 @@ $sortfield = GETPOST('sortfield','alpha');
 $sortorder = GETPOST('sortorder','alpha');
 $page = GETPOST('page','int');
 $diroutputpdf=$conf->ship2bill->multidir_output[$conf->entity];
-if (!empty($conf->global->SHIP2BILL_LIST_LENGTH)) $conf->liste_limit = $conf->global->SHIP2BILL_LIST_LENGTH;
+if (getDolGlobalString('SHIP2BILL_LIST_LENGTH')) $conf->liste_limit = getDolGlobalString('SHIP2BILL_LIST_LENGTH');
 $offset = 0;
 if ($page == -1 || empty($page)){ $page = 0; }
 if(!empty($page)) {
-    $offset = $conf->liste_limit * $page;
-    $pageprev = $page - 1;
-    $pagenext = $page + 1;
+	$offset = $conf->liste_limit * $page;
+	$pageprev = $page - 1;
+	$pagenext = $page + 1;
 }
 $limit = $conf->liste_limit;
 if (! $sortfield) $sortfield="e.ref";
@@ -117,9 +116,7 @@ if ($action == 'remove_file')
 	$action='';
 }
 else if($action=='delete_all_pdf_files') {
-	$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('DeleteAllFiles'), $langs->trans('ConfirmDeleteAllFiles'), 'confirm_delete_all_pdf_files', '', 'no', 1);
-
-
+    $formconfirm = $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('DeleteAllFiles'), $langs->trans('ConfirmDeleteAllFiles'), 'confirm_delete_all_pdf_files', '', 'no', 1);
 }
 else if($action=='confirm_delete_all_pdf_files' && $confirm == 'yes') {
 
@@ -195,7 +192,7 @@ if ((float)DOL_VERSION < 13) {
 $sql = "SELECT e.rowid, e.ref, e.date_delivery as date_expedition, l.date_delivery as date_livraison, e.fk_statut
 		, s.nom as socname, s.rowid as socid, c.rowid as cdeid, c.ref as cderef, c.ref_client
 		FROM ".MAIN_DB_PREFIX."expedition as e";
-if (!$user->rights->societe->client->voir && !$socid)	// Internal user with no permission to see all
+if (!$user->hasRight('societe', 'client', 'voir') && !$socid)	// Internal user with no permission to see all
 {
 	$sql.= "INNER JOIN ".MAIN_DB_PREFIX."societe_commerciaux as sc ON e.fk_soc = sc.fk_soc AND sc.fk_user = " .$user->id;
 }
@@ -245,7 +242,7 @@ else if(!empty($search_end_delivery_date) && empty($search_start_delivery_date))
 $sql2 = "SELECT e.rowid, e.ref, e.date_delivery as date_expedition, l.date_delivery as date_livraison, e.fk_statut
 		, s.nom as socname, s.rowid as socid, c.rowid as cdeid, c.ref as cderef, c.ref_client
 		FROM ".MAIN_DB_PREFIX."expedition as e";
-if (!$user->rights->societe->client->voir && !$socid)	// Internal user with no permission to see all
+if (!$user->hasRight('societe', 'client', 'voir') && !$socid)	// Internal user with no permission to see all
 {
 	$sql2.= "INNER JOIN ".MAIN_DB_PREFIX."societe_commerciaux as sc ON e.fk_soc = sc.fk_soc AND sc.fk_user = " .$user->id;
 }
@@ -318,11 +315,10 @@ if ($resql)
 	if ($search_status)  $param.= "&amp;search_status=".$search_status;
 	if ($search_start_delivery_date)  $param.= "&amp;search_start_delivery_date=".$search_start_delivery_date;
 	if ($search_end_delivery_date)  $param.= "&amp;search_end_delivery_date=".$search_end_delivery_date;
-	print_barre_liste($langs->trans('ShipmentToBill').(!empty($conf->global->SHIP2BILL_GET_SERVICES_FROM_ORDER) ? ' ('.$langs->trans('TotalHTShippingAndTotalHTBillCanBeDifferent').')' : ''), $page, "ship2bill.php",$param,$sortfield,$sortorder,'',$num);
+	print_barre_liste($langs->trans('ShipmentToBill').(getDolGlobalString('SHIP2BILL_GET_SERVICES_FROM_ORDER') ? ' ('.$langs->trans('TotalHTShippingAndTotalHTBillCanBeDifferent').')' : ''), $page, "ship2bill.php",$param,$sortfield,$sortorder,'',$num);
 
 	print '<form name="formAfficheListe" id="formShip2Bill" method="POST" action="ship2bill.php">';
 	print '<input type="hidden" name="token" value="'.$newToken.'">';
-
 	$i = 0;
 	print '<table class="noborder" width="100%">';
 
@@ -403,7 +399,7 @@ if ($resql)
 
 	$var=True;
 	$total = 0;
-	$checked = (empty($conf->global->SHIP2BILL_CHECKED_BY_DEFAULT)) ? '' : ' checked="checked"';
+	$checked = (!getDolGlobalString('SHIP2BILL_CHECKED_BY_DEFAULT')) ? '' : ' checked="checked"';
 
 	while ($i < min($num,$limit))
 	{
@@ -461,7 +457,7 @@ if ($resql)
 
 			// Date real
 			print "<td align=\"center\">";
-			print dol_print_date($db->jdate($objp->date_livraison),"day");
+			print dol_print_date($db->jdate($objp->delivery_date),"day");
 			print "</td>\n";
 		}
 
@@ -526,7 +522,7 @@ if ($resql)
 		</script>
 	";
 
-	if($num > 0 && $user->rights->facture->creer) {
+	if($num > 0 && $user->hasRight('facture', 'creer')) {
 		$f = new Form($db);
 		print '<br><div style="text-align: right;">';
 		print $langs->trans('Date').' : ';
@@ -586,17 +582,17 @@ if ($resql)
 	}
 	print '</form>';
 
-	if(!empty($conf->global->SHIP2BILL_GENERATE_GLOBAL_PDF)) {
+	if(getDolGlobalString('SHIP2BILL_GENERATE_GLOBAL_PDF')) {
 		print '<br><br>';
 		$formfile = new FormFile($db);
-		$formfile->show_documents('ship2bill','',$diroutputpdf,$urlsource,false,true,'',1,1,0,48,1,$param,$langs->trans("GlobalGeneratedFiles"));
+		$urlsource = isset($urlsource) ?? '';
+		$formfile->showdocuments('ship2bill','',$diroutputpdf,$urlsource,false,true,'',1,1,0,481,$param,$langs->trans("GlobalGeneratedFiles"));
 
 		echo '<div class="tabsAction">';
-		echo '<a class="butAction" href="?action=archive_files">'.$langs->trans('ArchiveFiles').'</a>';
-		echo '<a class="butAction" href="?action=delete_all_pdf_files">'.$langs->trans('DeleteAllFiles').'</a>';
+		echo '<a class="butAction" href="?action=archive_files&token='.$newToken.'">'.$langs->trans('ArchiveFiles').'</a>';
+		echo '<a class="butAction" href="?action=delete_all_pdf_files&token='.$newToken.'">'.$langs->trans('DeleteAllFiles').'</a>';
 		echo '</div>';
 	}
-
 	$db->free($resql);
 }
 else

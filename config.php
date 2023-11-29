@@ -36,9 +36,9 @@ function checkVersion(&$DoliDb, $moduleName) {
 
 		if(!empty($mod->version)) {
 			$version = $mod->version;
-			if(versionXY($conf->global->$conf_name) != versionXY($version)) {
+			if(versionXY(getDolGlobalString($conf_name)) != versionXY($version)) {
 
-				$message = "Your module wasn't updated (v".$conf->global->$conf_name." != ".$version."). Please reload it or launch the update of database script";
+				$message = "Your module wasn't updated (v" . getDolGlobalString($conf_name)." != ".$version."). Please reload it or launch the update of database script";
 
 				accessforbidden($message);
 			}
