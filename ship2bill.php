@@ -24,6 +24,7 @@
  */
 
 require 'config.php';
+dol_include_once('/compta/facture/class/facture.class.php');
 dol_include_once('/expedition/class/expedition.class.php');
 dol_include_once('/ship2bill/class/ship2bill.class.php');
 dol_include_once('/core/class/html.formfile.class.php');
