@@ -43,7 +43,7 @@ function setExtraVisibility($value, $name, $elementtype){
 
 	function ship2billAdminPrepareHead()
 	{
-		global $langs, $conf;
+		global $langs, $conf, $object;
 
 		$langs->load("ship2bill@ship2bill");
 

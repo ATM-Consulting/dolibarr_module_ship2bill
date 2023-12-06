@@ -140,7 +140,7 @@ class InterfaceShip2billWorkflow
 		/*
 		 *  FACTURE
 		 */
-        if ($action == 'BILL_VALIDATE' && $conf->global->SHIP2BILL_CLASSYFIED_PAYED_ORDER)
+        if ($action == 'BILL_VALIDATE' && getDolGlobalString('SHIP2BILL_CLASSYFIED_PAYED_ORDER'))
         {
 			dol_include_once('/commande/class/commande.class.php');
 			dol_include_once('/expedition/class/expedition.class.php');
