@@ -2,11 +2,17 @@
 All notable changes to this project will be documented in this file.
 
 ## Unreleased
+
+
+
+## RELEASE 1.9
+
 - NEW : Dolibarr compatibility V19 - *04/12/2023* - 1.9.0  
   Changed Dolibarr compatibility range to 15 min - 19 max  
   Change PHP compatibility range to 7.0 min - 8.2 max
 
-## 1.8
+## RELEASE 1.8
+
 - FIX : DA023854 - missing include facture class - *27/09/2023* - 1.8.5
 - FIX : mising parameters for addline txtva and add condition to test if table of command is empty  - *21/09/2023* - 1.8.4
 - FIX : [hregis] Conf saved to the wrong entity - *02/06/2023* - 1.8.3
@@ -15,7 +21,8 @@ All notable changes to this project will be documented in this file.
 - FIX : Conf permettant de choisir la date de création plutôt que la date de livraison pour les titres dans les factures (DA022055) *14/10/2022* 1.8.1
 - NEW : Ajout de la class TechATM pour l'affichage de la page "A propos" *11/05/2022* 1.8.0
 
-## 1.7
+## RELEASE 1.7
+
 - FIX: [thomas-Ngr] Dolibarr log Warning (`run_trigger` renamed to `runTrigger`, alias kept for backward 
   compatibility) - *02/06/2023* - 1.7.7
 - FIX: PHP 8 - *04/08/2022* - 1.7.6
