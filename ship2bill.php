@@ -330,8 +330,8 @@ if ($resql)
 	print_liste_field_titre($langs->trans("Company"),"ship2bill.php","socname", "", $param,'align="left"',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("DateDeliveryPlanned"),"ship2bill.php","date_expedition","",$param, 'align="center"',$sortfield,$sortorder);
 
-	// Utilisation du sous-module livraison activable dans expedition (note: en v13+, renommé en `delivery_note`)
-	if (!empty($conf->livraison_bon->enabled) || !empty($conf->delivery_note->enabled)) {
+	// Utilisation du sous-module livraison activable dans expedition
+	if (isModEnabled('delivery_note')) {
 		print_liste_field_titre($langs->trans("DeliveryOrder"),"ship2bill.php","e.ref","",$param, '',$sortfield,$sortorder);
 		print_liste_field_titre($langs->trans("DateReceived"),"ship2bill.php","e.date_expedition","",$param, 'align="center"',$sortfield,$sortorder);
 	}
@@ -358,8 +358,8 @@ if ($resql)
 	print '<td class="liste_titre" align="center">'.$form->selectDate(!empty($search_start_delivery_date)?strtotime($tmp_date_start):'','search_start_delivery_date',0,0,1).'
 			</br>'.$form->selectDate(!empty($search_end_delivery_date)?strtotime($tmp_date_end):'','search_end_delivery_date',0,0,1).'</td>';
 
-	// Utilisation du sous-module livraison activable dans expedition (note: en v13+, renommé en `delivery_note`)
-	if(!empty($conf->livraison_bon->enabled) || !empty($conf->delivery_note->enabled)) {
+	// Utilisation du sous-module livraison activable dans expedition
+	if(isModEnabled('delivery_note')) {
 		$colspan += 2;
 		print '<td class="liste_titre">';
 		print '<input class="flat" size="10" type="text" name="search_ref_liv" value="'.$search_ref_liv.'"';
@@ -445,8 +445,8 @@ if ($resql)
 		}*/
 		print "</td>\n";
 
-		// Utilisation du sous-module livraison activable dans expedition (note: en v13+, renommé en `delivery_note`)
-		if(!empty($conf->livraison_bon->enabled) || !empty($conf->delivery_note->enabled)) {
+		// Utilisation du sous-module livraison activable dans expedition
+		if(isModEnabled('delivery_note')) {
 			$shipment->fetchObjectLinked($shipment->id,$shipment->element);
 			if(!empty($shipment->linkedObjects['delivery'])) $receiving=(! empty($shipment->linkedObjects['delivery'][key($shipment->linkedObjects['delivery'])])?$shipment->linkedObjects['delivery'][key($shipment->linkedObjects['delivery'])]:'');
 			else $receiving = '';
