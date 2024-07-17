@@ -12,11 +12,11 @@ class Ship2Bill {
         dol_include_once('/core/modules/facture/modules_facture.php');
 
 		// Utilisation du sous-module livraison activable dans expedition (note: en v13+, renommé en `delivery_note`)
-		if(!empty($conf->livraison_bon->enabled) || !empty($conf->delivery_note->enabled)) {
+		if(isModEnabled('livraison_bon') || isModEnabled('delivery_note')) {
 			dol_include_once('/livraison/class/livraison.class.php');
 		}
 		// Utilisation du module sous-total si activé
-		if($conf->subtotal->enabled) {
+		if(isModEnabled('subtotal')) {
 			dol_include_once('/subtotal/class/actions_subtotal.class.php');
 			dol_include_once('/subtotal/class/subtotal.class.php');
 			$langs->load("subtotal@subtotal");
@@ -63,7 +63,7 @@ class Ship2Bill {
 						|| (getDolGlobalString('SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD') && empty($soc->array_options['options_s2b_bill_management'])))) //Si la gestion par extrafield est activé mais que l'extrafield est vide on reprend la conf par défaut
 				|| (getDolGlobalString('SHIP2BILL_MULTIPLE_EXPED_ON_BILL_THIRDPARTY_CARD') && $soc->array_options['options_s2b_bill_management'] == 3));
 
-			if(!empty($conf->incoterm->enabled)) $incoterms_updated=false;
+			if(isModEnabled('incoterm')) $incoterms_updated=false;
 
 			// Création d'une facture regroupant plusieurs expéditions (par défaut)
 			if($conditionForBillByThirdparty) {
@@ -100,7 +100,7 @@ class Ship2Bill {
 					$f = $TBilling[$fk_commande];
 				}
 
-				if(!empty($conf->incoterm->enabled) && (!$incoterms_updated || !$f->incoterms_updated)&& !empty($exp->fk_incoterms)) {
+				if(isModEnabled('incoterm') && (!$incoterms_updated || !$f->incoterms_updated)&& !empty($exp->fk_incoterms)) {
 					$f->setIncoterms($exp->fk_incoterms, $exp->location_incoterms);
 					if($conditionForBillByThirdparty) $incoterms_updated=true;
 					else if($conditionForBillByOrder) $f->incoterms_updated=true;
@@ -269,7 +269,7 @@ class Ship2Bill {
 		$f = new Facture($db);
 
 		// Si le module Client facturé est activé et que la constante BILLANOTHERCUSTOMER_USE_PARENT_BY_DEFAULT est à 1, on facture la maison mère
-		if($conf->billanothercustomer->enabled && getDolGlobalString('BILLANOTHERCUSTOMER_USE_PARENT_BY_DEFAULT')) {
+		if(isModEnabled('billanothercustomer') && getDolGlobalString('BILLANOTHERCUSTOMER_USE_PARENT_BY_DEFAULT')) {
 			$soc = new Societe($db);
 			$soc->fetch($id_client);
 			if($soc->parent > 0)
@@ -324,11 +324,11 @@ class Ship2Bill {
 			// Sélectionne uniquement les produits
 			if (($l->fk_product_type == 0 && !empty($l->fk_product)) || getDolGlobalString('STOCK_SUPPORTS_SERVICES')) {
 				$orderline = new OrderLine($db);
-				$orderline->fetch($l->fk_origin_line);
+				$orderline->fetch($l->fk_elementdet ?? $l->fk_origin_line);
 				$orderline->fetch_optionals();
 
 				// Si ligne du module sous-total et que sa description est vide alors il faut attribuer le label (le label ne semble pas être utiliser pour l'affichage car deprécié)
-				if (!empty($conf->subtotal->enabled) && $orderline->special_code == TSubtotal::$module_number && empty($l->description)) $l->description = $l->label;
+				if (isModEnabled('subtotal') && $orderline->special_code == TSubtotal::$module_number && empty($l->description)) $l->description = $l->label;
 
 				if((float)DOL_VERSION <= 3.4)
 					$f->addline($f->id, $l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'shipping',$l->line_id,0,$orderline->fk_fournprice,$orderline->pa_ht,$orderline->label);
@@ -420,7 +420,7 @@ class Ship2Bill {
 			else if(getDolGlobalString('SHIP2BILL_DISPLAY_SHIPMENT_REAL_DATE') && !empty($exp->date_creation))$title2.= ' ('.dol_print_date($exp->date_creation,'day').')';
 
 			// Utilisation du sous-module livraison activable dans expedition (note: en v13+, renommé en `delivery_note`)
-			if(!empty($conf->livraison_bon->enabled) || !empty($conf->delivery_note->enabled)) {
+			if(isModEnabled('livraison_bon') || isModEnabled('delivery_note')) {
 				$exp->fetchObjectLinked('','','','delivery');
 
 				// Récupération des infos du BL pour le titre, sinon de l'expédition
@@ -448,7 +448,7 @@ class Ship2Bill {
 			}
 			//exit($title);
 			// Ajout du titre
-			if($conf->subtotal->enabled) {
+			if(isModEnabled('subtotal')) {
 				if(method_exists($sub, 'addSubTotalLine')) $sub->addSubTotalLine($f, $title, 1);
 				else {
 					if((float)DOL_VERSION <= 3.4) $f->addline($f->id, $title, 0,1,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
@@ -466,7 +466,7 @@ class Ship2Bill {
 
 		// Ajout d'un sous-total par expédition
 		if(getDolGlobalString('SHIP2BILL_ADD_SHIPMENT_SUBTOTAL')) {
-			if($conf->subtotal->enabled) {
+			if(isModEnabled('subtotal')) {
 				if(method_exists($sub, 'addSubTotalLine')) $sub->addSubTotalLine($f, $langs->transnoentities('SubTotal'), 99);
 				else {
 					if((float)DOL_VERSION <= 3.4) $f->addline($f->id, $langs->transnoentities('SubTotal'), 0,99,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
