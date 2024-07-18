@@ -319,12 +319,12 @@ class Ship2Bill {
 		global $conf, $db;
 
 		// Pour chaque produit de l'expédition, ajout d'une ligne de facture
-		foreach($exp->lines as $l){
+		foreach($exp->lines as  $l){
 			if(getDolGlobalString('SHIPMENT_GETS_ALL_ORDER_PRODUCTS')  && $l->qty == 0) continue;
 			// Sélectionne uniquement les produits
 			if (($l->fk_product_type == 0 && !empty($l->fk_product)) || getDolGlobalString('STOCK_SUPPORTS_SERVICES')) {
 				$orderline = new OrderLine($db);
-				$orderline->fetch($l->fk_origin_line);
+				$orderline->fetch($l->fk_elementdet ?? $l->fk_origin_line);
 				$orderline->fetch_optionals();
 
 				// Si ligne du module sous-total et que sa description est vide alors il faut attribuer le label (le label ne semble pas être utiliser pour l'affichage car deprécié)
