@@ -58,7 +58,7 @@ class modShip2bill extends DolibarrModules
 		$this->editor_url = 'https://www.atm-consulting.fr';
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
 
-		$this->version = '1.9.0';
+		$this->version = '1.10.0';
 		// Url to the file with your last numberversion of this module
 		require_once __DIR__ . '/../../class/techatm.class.php';
 		$this->url_last_version = \ship2bill\TechATM::getLastModuleVersionUrl($this);
@@ -106,7 +106,7 @@ class modShip2bill extends DolibarrModules
 		$this->requiredby = array();	// List of modules id to disable if this one is disabled
 		$this->conflictwith = array();	// List of modules id this module is in conflict with
 		$this->phpmin = array(7,0);					// Minimum version of PHP required by module
-		$this->need_dolibarr_version = array(15, 0);	// Minimum version of Dolibarr required by module
+		$this->need_dolibarr_version = array(16, 0);	// Minimum version of Dolibarr required by module
 		$this->langfiles = array("ship2bill@ship2bill");
 
 		// Constants
@@ -143,10 +143,10 @@ class modShip2bill extends DolibarrModules
         $this->tabs = array();
 
         // Dictionaries
-	    if (! isset($conf->mymodule->enabled))
+	    if (!isModEnabled('ship2bill'))
         {
-        	$conf->mymodule=new stdClass();
-        	$conf->mymodule->enabled=0;
+        	$conf->ship2bill=new stdClass();
+        	$conf->ship2bill->enabled=0;
         }
 		$this->dictionaries=array();
         /* Example:
@@ -194,7 +194,7 @@ class modShip2bill extends DolibarrModules
 								'leftmenu'=>'sendings',
 								'url'=>'/ship2bill/ship2bill.php',
 								'position'=>100,
-								'enabled'=>'$conf->ship2bill->enabled',  // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+								'enabled'=>"isModEnabled('ship2bill')",  // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
 								'perms'=>'$user->rights->ship2bill->read && $user->rights->expedition->lire',			                // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 								'target'=>'',
 								'user'=>2);				                // 0=Menu for internal users, 1=external users, 2=both

@@ -110,7 +110,7 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">'
 print '</form>';
 print '</td></tr>';
 
-if(!empty($conf->subtotal->enabled)) {
+if(isModEnabled('subtotal')) {
 	// Add subtotal
 	$var=!$var;
 	print '<tr '.$bc[$var].'>';
