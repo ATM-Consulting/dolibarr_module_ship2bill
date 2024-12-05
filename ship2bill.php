@@ -186,9 +186,6 @@ $(document).ready(function() {
 <?php
 
 $deliveryTableName = 'delivery';
-if ((float)DOL_VERSION < 13) {
-	$deliveryTableName = 'livraison';
-}
 
 $sql = "SELECT e.rowid, e.ref, e.date_delivery as date_expedition, l.date_delivery as date_livraison, e.fk_statut
 		, s.nom as socname, s.rowid as socid, c.rowid as cdeid, c.ref as cderef, c.ref_client
@@ -458,7 +455,7 @@ if ($resql)
 
 			// Date real
 			print "<td align=\"center\">";
-			print dol_print_date($db->jdate($objp->delivery_date),"day");
+			print dol_print_date($db->jdate($objp->delivery_date ?? null),"day");
 			print "</td>\n";
 		}
 
