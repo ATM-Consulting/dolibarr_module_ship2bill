@@ -117,10 +117,7 @@ class Ship2Bill {
 				$this->facture_add_subtotal($f, $sub);
 				// Lien avec la facture
 				$f->add_object_linked('shipping', $exp->id);
-                if ((float)DOL_VERSION < 15) {
-                    //Dolibarr already create link
-                    $f->add_object_linked('commande', $fk_commande);
-                }
+
 				$f->add_object_linked($exp->origin, $exp->origin_id);
 				// Ajout des contacts facturation provenant de l'expé
 				$this->facture_add_shipping_contacts($f, $exp);
@@ -330,15 +327,13 @@ class Ship2Bill {
 				// Si ligne du module sous-total et que sa description est vide alors il faut attribuer le label (le label ne semble pas être utiliser pour l'affichage car deprécié)
 				if (isModEnabled('subtotal') && $orderline->special_code == TSubtotal::$module_number && empty($l->description)) $l->description = $l->label;
 
-				if((float)DOL_VERSION <= 3.4)
-					$f->addline($f->id, $l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'shipping',$l->line_id,0,$orderline->fk_fournprice,$orderline->pa_ht,$orderline->label);
-				else
+
 					$f->addline($l->description, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1tx,$l->localtax2tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,$orderline->product_type,-1,$orderline->special_code,'shipping',$l->line_id,0,$orderline->fk_fournprice,$orderline->pa_ht,$orderline->label, $orderline->array_options);
 			}
 		}
 
 		//Récupération des services de la commande si SHIP2BILL_GET_SERVICES_FROM_ORDER
-		if(getDolGlobalString('SHIP2BILL_GET_SERVICES_FROM_ORDER')  && (float)DOL_VERSION >= 3.5 && !getDolGlobalString('STOCK_SUPPORTS_SERVICES')){
+		if(getDolGlobalString('SHIP2BILL_GET_SERVICES_FROM_ORDER') && !getDolGlobalString('STOCK_SUPPORTS_SERVICES')){
 			dol_include_once('/commande/class/commande.class.php');
 
 			$commande = new Commande($db);
@@ -426,11 +421,8 @@ class Ship2Bill {
 				// Récupération des infos du BL pour le titre, sinon de l'expédition
 				if (! empty($exp->linkedObjectsIds['delivery'])) {
 					$id_liv = array_pop($exp->linkedObjectsIds['delivery']);
-					if((float)DOL_VERSION >= 13.0) {
-						$liv = new Delivery($db);
-					}else{
-						$liv = new Livraison($db);
-					}
+					$liv = new Delivery($db);
+
 
 					$liv->fetch($id_liv);
 					$title2 = $langs->transnoentities('Delivery').' '.$liv->ref;
@@ -451,12 +443,10 @@ class Ship2Bill {
 			if(isModEnabled('subtotal')) {
 				if(method_exists($sub, 'addSubTotalLine')) $sub->addSubTotalLine($f, $title, 1);
 				else {
-					if((float)DOL_VERSION <= 3.4) $f->addline($f->id, $title, 0,1,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
-					else $f->addline($title, 0,1,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
+					 $f->addline($title, 0,1,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
 				}
 			} else {
-				if((float)DOL_VERSION <= 3.4) $f->addline($f->id, $title, 0, 1, 0);
-				else $f->addline($title, 0, 1, 0);
+				 $f->addline($title, 0, 1, 0);
 			}
 		}
 	}
@@ -469,8 +459,7 @@ class Ship2Bill {
 			if(isModEnabled('subtotal')) {
 				if(method_exists($sub, 'addSubTotalLine')) $sub->addSubTotalLine($f, $langs->transnoentities('SubTotal'), 99);
 				else {
-					if((float)DOL_VERSION <= 3.4) $f->addline($f->id, $langs->transnoentities('SubTotal'), 0,99,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
-					else $f->addline($langs->transnoentities('SubTotal'), 0,99,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
+					 $f->addline($langs->transnoentities('SubTotal'), 0,99,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
 				}
 			}
 		}
@@ -509,8 +498,7 @@ class Ship2Bill {
 			$outputlangs->setDefaultLang($newlang);
 		}
 
-		if ((float) DOL_VERSION <= 4.0)	$result=facture_pdf_create($db, $f, $f->modelpdf, $outputlangs, $hidedetails, $hidedesc, $hideref);
-		else $result = $f->generateDocument($f->modelpdf, $outputlangs, $hidedetails, $hidedesc, $hideref);
+		$result = $f->generateDocument($f->modelpdf, $outputlangs, $hidedetails, $hidedesc, $hideref);
 
 		if($result > 0) {
 			$objectref = dol_sanitizeFileName($f->ref);
