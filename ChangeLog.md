@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 
 
 ## Release 1.10
+- FIX : Missing print for displaying global PDF - *09/06/2025* - 1.10.2
 - FIX : Compat v21 - *05/12/2024* - 1.10.1
 - FIX : Compat v20
   Changed Dolibarr compatibility range to 16 min - 20 max - *28/07/2024* - 1.10.0
