@@ -584,7 +584,7 @@ if ($resql)
 		print '<br><br>';
 		$formfile = new FormFile($db);
 		$urlsource = isset($urlsource) ?? '';
-		$formfile->showdocuments('ship2bill','',$diroutputpdf,$urlsource,false,true,'',1,1,0,481,$param,$langs->trans("GlobalGeneratedFiles"));
+		print $formfile->showdocuments('ship2bill','',$diroutputpdf,$urlsource,false,true,'',1,1,0,481,$param,$langs->trans("GlobalGeneratedFiles"));
 
 		echo '<div class="tabsAction">';
 		echo '<a class="butAction" href="?action=archive_files&token='.$newToken.'">'.$langs->trans('ArchiveFiles').'</a>';
