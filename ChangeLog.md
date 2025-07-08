@@ -2,6 +2,7 @@
 All notable changes to this project will be documented in this file.
 
 ## Unreleased
+- NEW : COMPAT V22 - *08/07/2025* - 1.11.0
 
 
 
