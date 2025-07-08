@@ -152,8 +152,6 @@ class InterfaceShip2billWorkflow
 					// Clôturer l'expédition
 					if(version_compare(DOL_VERSION, '17.0.0', '>=')){
 						$expedition->setBilled();
-					} else {
-						$expedition->set_billed();
 					}
 
 					// Classer facturée la commande si déjà au statut "Délivrée"

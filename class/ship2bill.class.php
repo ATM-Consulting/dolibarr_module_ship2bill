@@ -125,8 +125,6 @@ class Ship2Bill {
 				if(getDolGlobalString('SHIP2BILL_CLOSE_SHIPMENT')) {
 					if(version_compare(DOL_VERSION, '17.0.0', '>=')){
 						$exp->setBilled();
-					} else {
-						$exp->set_billed();
 					}
 				}
 
