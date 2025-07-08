@@ -2,12 +2,12 @@
 All notable changes to this project will be documented in this file.
 
 ## Unreleased
+- NEW : COMPAT V22 - *08/07/2025* - 1.11.0
 
 
 
 
 ## Release 1.10
-- FIX : COMPAT V22 - *08/07/2025* - 1.10.3
 - FIX : Missing print for displaying global PDF - *09/06/2025* - 1.10.2
 - FIX : Compat v21 - *05/12/2024* - 1.10.1
 - FIX : Compat v20
